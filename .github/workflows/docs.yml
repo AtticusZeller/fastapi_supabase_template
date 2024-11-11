@@ -1,0 +1,34 @@
+name: mkdocs
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+        with:
+          # get full git commit to adjust for git-revision-date-localized plugin
+          fetch-depth: 0
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: install dependencies and deploy
+        run: |
+          uv sync --only-group docs
+          uv run mkdocs gh-deploy --force
+
+# Reference
+# 1. https://squidfunk.github.io/mkdocs-material/publishing-your-site/
+# 2. https://github.com/Kludex/python-template/blob/main/.github/workflows/docs.yml

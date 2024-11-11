@@ -1,0 +1,76 @@
+name: Test And Release
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests / OS ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --python ${{ matrix.python-version }} --all-extras --dev
+
+      - name: Run tests
+        run: uv run bash scripts/test.sh
+
+      - name: Run linters
+        run: uv run bash scripts/lint.sh
+
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  release:
+    name: Bump Version and Release
+    needs: test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Generate a changelog
+        env:
+          ATTICUS_PAT: ${{ secrets.ATTICUS_PAT }}
+        run: uv run git-cliff -vv --latest --strip header --github-token "$ATTICUS_PAT" -o CHANGES.md
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGES.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+# Reference
+# 1. https://docs.astral.sh/uv/guides/integration/github/#syncing-and-running
+# 2. https://github.com/Kludex/python-template/blob/main/.github/workflows/main.yml
+# 3. https://github.com/softprops/action-gh-release/tree/master/
+
