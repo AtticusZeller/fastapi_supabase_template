@@ -4,17 +4,37 @@ All notable changes to this project will be documented in this file.
 
 ## unreleased
 
+### 🚀 Features
+
+- Add timestamp logging
+- Add test_pre_start.py for testing connection of db
+
 ### 🐛 Bug Fixes
 
 - Lint error
+- Lint dir
+- Update supabase env with local url
+- Add superuser into config
 
 ### 🚜 Refactor
 
 - Move src/app to top level of dir as app/
+- Update fastapi config with db and etc. and move partial settings into `.envs`
+- Treat super_client as  Depends
+- Move src/app,supabase into backend/
 
 ### 📚 Documentation
 
 - Add docs dir for mkdocs
+- Update README.md for install supabase locally
+
+### 🎨 Styling
+
+- Add tests/ into format
+
+### 🧪 Testing
+
+- Add basic lifespan test
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -22,13 +42,22 @@ All notable changes to this project will be documented in this file.
 - Remove semantic-release and add mkdocs build
 - *(git)* Pre-commit upgrade to ruff
 - Add scripts for test and lint etc.
+- Move app to src/app and add 'pythonpath=src' to pytest config
+- Add github release
+- Format
+- Vscode python import
+- Update python import vscode plugin
+- Add deps
+- *(git)* Remove .vscode
+- Move scripts closer to backend/app
+- Update lockfile
 
 ## 0.4.1 - 2024-09-18
 
 ### 🐛 Bug Fixes
 
 - Remove supabase-py-async with supabase-py
-- Merge pull request #139 from Atticuszz/work-with-supabase-py in #139
+- Merge pull request #139 from Atticuszz/work-with-supabase-py
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -86,7 +115,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Update README.md
-- Add latest_changes.yml in #22
+- Add latest_changes.yml
 - Update latest_changes.yml
 - Update ci.yml
 
@@ -94,14 +123,14 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
-- Release in #21
+- Release
 
 ## 0.1.0 - 2024-01-13
 
 ### 🚀 Features
 
 - Update ci and README.md
-- Release in #20
+- Release
 
 ### 🐛 Bug Fixes
 
