@@ -1,0 +1,184 @@
+# Copyright (c) 2016-2024 A.J.Zeller <zhouge1831@gmail.com>
+
+# Project information
+site_name: fastapi_supabase_template
+site_url: https://atticuszz.github.io/fastapi_supabase_template
+
+# Repository
+# To display a link to the repository of your project as part of your documentation: https://squidfunk.github.io/mkdocs-material/setup/adding-a-git-repository/?h=edit+uri#code-actions-edit-this-page:~:text=In%20order%20to%20display%20a%20link%20to%20the%20repository%20of%20your%20project%20as%20part%20of%20your%20documentation
+repo_url: https://github.com/Atticuszz/fastapi_supabase_template
+repo_name: fastapi_supabase_template
+edit_uri: edit/main/docs
+
+# Copyright
+copyright: Copyright &copy; 2016 - 2024 A.J.Zeller
+
+# Configuration
+theme:
+    name: 'material'
+    features:
+      # code
+      - content.code.copy
+      - content.action.edit
+      # footnotes
+      - content.footnote.tooltips
+
+      ## navigation
+      # The site_url setting must be set
+      - navigation.instant
+      # The progress indicator will only show if the page hasn't finished loading after 400ms
+      - navigation.instant.progress
+      # top-level selection move to top tabs
+      - navigation.tabs
+      # default to be expand
+      # - navigation.expand
+      # enable turn to before  or after  page in page button
+      - navigation.footer
+      # back to top
+      - navigation.top
+      # When anchor tracking is enabled, the URL in the address bar is automatically updated with the active anchor as highlighted in the table of contents
+      - navigation.tracking
+
+      # When anchor following for the table of contents is enabled, the sidebar is automatically scrolled so that the active anchor is always visible
+      - toc.follow
+
+      # search
+      - search.suggest
+      - search.highlight
+      - search.share
+    palette:
+
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: green
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+    font:
+      text: 'Lora'
+      code: 'JetBrains Mono'
+
+    # # logo from https://obsidian.md/brand
+    # favicon: assets/logo/logo.svg
+    # logo: assets/logo/logo.svg
+
+    icon:
+      edit: material/pencil
+      repo: fontawesome/brands/git-alt
+
+plugins:
+  # The git-revision-date-localized plugin adds support for adding the date of last update and creation of a document at the bottom of each page
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: iso_datetime
+  # adjust to obsidian path
+  - obsidian-bridge
+  - pub-obsidian: # https://mkdocs-publisher.github.io/setup/installation/
+      obsidian_dir: .obsidian
+      backlinks:
+        enabled: true
+      callouts:
+        enabled: true
+        indentation: spaces
+      # links:
+      #   wikilinks_enabled: true
+      #   img_lazy: true
+  # image zoom
+  - glightbox
+  - search
+  # - blog
+  # - rss:
+  #     match_path: blog/posts/.*
+  #     date_from_meta:
+  #       as_creation: date
+  #     categories:
+  #       - categories
+  #       - tags
+
+extra:
+  social:
+    - icon: fontawesome/solid/paper-plane
+      link: mailto:zhouge1831@gmail.com
+    - icon: fontawesome/brands/github
+      link: https://github.com/Atticuszz
+    - icon: fontawesome/brands/linkedin
+      link: https://hk.linkedin.com/in/atticus-zhou-250a88323
+
+
+
+markdown_extensions:
+  ## page
+  # The Table of Contents extension automatically generates a table of contents from a document
+  - toc:
+      permalink: true
+  ## basic markdown
+  # attr_list
+  - attr_list
+  - markdown.extensions.codehilite:
+      guess_lang: true
+  - markdown.extensions.toc:
+      permalink: true
+  # The BetterEm extension improves the detection of Markup to emphasize text in Markdown using special characters, i.e. for **bold** and _italic_ formatting.
+  - pymdownx.betterem:
+      smart_enable: all
+  # list
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+  # highlight
+  - pymdownx.mark
+  # strikethrough
+  - pymdownx.tilde
+  # admonition setting: https://squidfunk.github.io/mkdocs-material/reference/admonitions/#inline-blocks-inline-end:~:text=Custom%20admonitions-,Admonitions,-%C2%B6
+  - admonition
+  - pymdownx.details
+  # table
+  - tables
+  # footnotes
+  - footnotes
+  #code
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  # math
+  - pymdownx.arithmatex:
+      generic: true
+  # mermaid
+  # - pymdownx.superfences:
+  #     custom_fences:
+  #       - name: mermaid
+  #         class: mermaid
+  #         format: !!python/name:pymdownx.superfences.fence_code_format
+  # emoji
+  # - pymdownx.emoji:
+  #     emoji_index: !!python/name:material.extensions.emoji.twemoji
+  #     emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  # Image
+  - md_in_html
+
+# math and mermaid
+extra_javascript:
+  # - js/katex.js
+  # - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
+  - https://unpkg.com/mermaid/dist/mermaid.min.js
+
+# extra_css:
+#   # katex.js
+#   - https://unpkg.com/katex@0/dist/katex.min.css

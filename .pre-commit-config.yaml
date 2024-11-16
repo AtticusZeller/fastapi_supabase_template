@@ -1,98 +1,50 @@
-exclude: '^.*\.(md|MD|xml|ini|cfg|txt)$|^\.idea/'
+# https://pre-commit.com/
+# `pre-commit install` to set up the git hook scripts
+# `pre-commit autoupdate` to update repos
+# `pre-commit run --all-files` run hooks for all file
+exclude: (^|/)\..* # exclude hidden files or folder
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v4.2.0
     hooks:
+      - id: check-toml
       - id: check-yaml
-        # 检查YAML文件是否格式正确
+        args: ["--unsafe"]
       - id: check-json
-        # 检查JSON文件是否格式正确
-      - id: trailing-whitespace
-        # 删除行尾空格
       - id: check-added-large-files
-        # 检查是否有大文件被错误地添加到git
+        args: ["--maxkb=51200"]
+      - id: debug-statements
       - id: end-of-file-fixer
-        # 确保文件以一个空行结尾
-      - id: mixed-line-ending
-        # 统一文件的行结束符（例如，将CRLF转换为LF）
-        args: [ "--fix=lf" ]
-
+      - id: trailing-whitespace
+      - id: detect-private-key
+      - id: destroyed-symlinks
+      - id: check-vcs-permalinks
+    # spell check
   - repo: https://github.com/codespell-project/codespell
     rev: v2.3.0
     hooks:
       - id: codespell
-        files: \.(py|sh|rst|yml|yaml)$
+        files: \.(py|sh|rst|yml|yaml|md)$
         args: [--write-changes]
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    # lint and format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.8
     hooks:
-      - id: isort
-        # 对Python的import语句进行排序和格式化
-        args:
-          [
-            "--profile",
-            "black",
-            "--multi-line=3",
-            "--trailing-comma",
-            "--force-grid-wrap=0",
-            "--use-parentheses",
-            "--line-width=88",
-          ]
-
-  - repo: https://github.com/PyCQA/autoflake
-    rev: v2.3.1
-    hooks:
-      - id: autoflake
-        # 移除未使用的导入和变量
-        args:
-          [
-            "--in-place",
-            "--remove-all-unused-imports",
-            "--ignore-init-module-imports",
-          ]
-
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.0
-    hooks:
-      - id: pyupgrade
-        # 将Python代码升级到新版本的Python语法
-        args: [ "--py310-plus" ]
-
-  - repo: https://github.com/psf/black
-    rev: "24.10.0"
-    hooks:
-      - id: black
-        # 自动格式化Python代码，符合PEP 8风格指南
-        args: [--line-length=88]
-
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.30.0
-    hooks:
-      - id: commitizen
-        # 确保commit信息遵循Conventional Commits标准
-        stages: [ commit-msg ]
-
-  - repo: 'https://github.com/PyCQA/flake8'
-    rev: 7.1.1
-    hooks:
-      - id: flake8
-        args:
-          - '--max-line-length=88'
-          - '--ignore=E203,W503,F401'
-        language: python
-        types: [ python ]
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
-    hooks:
-      - id: mypy
-        args: [ --ignore-missing-imports,--disallow-untyped-defs, --show-error-codes ]
-#          additional_dependencies: [ types-requests, types-setuptools ]  # 如果需要额外的类型存根
-
+      - id: ruff
+        args: [ --fix ]
+      - id: ruff-format
+  # - repo: https://github.com/hadolint/hadolint
+  #   rev: v2.12.0
+  #   hooks:
+  #     - id: hadolint
+  #       name: Lint Dockerfiles
+  #       description: Runs hadolint to lint Dockerfiles
+  #       language: system
+  #       types: ["dockerfile"]
+  #       entry: hadolint
 ci:
-    # Settings for the https://pre-commit.ci/ continuous integration service
-    autofix_prs: True
-    # Default message is more verbose
-    autoupdate_commit_msg: '[pre-commit.ci] autoupdate'
-    # Default is weekly
-    autoupdate_schedule: monthly
+  # Settings for the https://pre-commit.ci/ continuous integration service
+  autofix_prs: True
+  autofix_commit_msg: 🎨 [pre-commit.ci] Auto format from pre-commit.com hooks
+  autoupdate_commit_msg: ⬆ [pre-commit.ci] pre-commit autoupdate
+  autoupdate_schedule: monthly

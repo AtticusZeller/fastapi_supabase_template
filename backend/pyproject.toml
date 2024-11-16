@@ -1,0 +1,122 @@
+[project]
+name = "app"
+version = "0.4.1"
+requires-python = ">=3.10"
+dependencies = [
+    "uvicorn>=0.30.6",
+    "pydantic[email]>=2.8.2",
+    "pydantic-settings>=2.4.0",
+    "python-multipart>=0.0.9",
+    "supabase>=2.7.4",
+    "fastapi>=0.112.2",
+    "sqlmodel>=0.0.22",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "tenacity>=9.0.0",
+    "psycopg2-binary>=2.9.10",
+]
+
+[dependency-groups]
+dev = [
+    "anyio>=4.6.2.post1",
+    "coverage>=7.6.1",
+    "faker>=28.0.0",
+    "mypy>=1.13.0",
+    "pre-commit>=3.8.0",
+    "pytest-sugar>=1.0.0",
+    "pytest>=8.3.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+## Test
+[tool.mypy]
+strict = true
+exclude = ["venv", ".venv", "alembic"]
+
+[tool.pytest.ini_options]
+# Set additional command line options for pytest=
+# -r= show extra test summary info
+# X= show extra info on xfailed tests
+# s= don't capture stdout (allow print statements)
+# --strict-config= any warnings about configuration are treated as errors
+# --strict-markers= treat unregistered markers as errors
+addopts = "-rXs --strict-config --strict-markers"
+xfail_strict = true         # Treat tests that are marked as xfail but pass as test failures
+filterwarnings = ["error"]  # Treat all warnings as errors
+pythonpath = "app"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+skip_covered = true
+show_missing = true
+precision = 2
+exclude_lines = [
+    'def __repr__',
+    'pragma= no cover',
+    'raise NotImplementedError',
+    'if TYPE_CHECKING=',
+    'if typing.TYPE_CHECKING=',
+    '@overload',
+    '@typing.overload',
+    '\(Protocol\)=$',
+    'typing.assert_never',
+    'assert_never',
+    'if __name__ == "__main__":',
+]
+
+
+## Linter and formatter
+[tool.ruff]
+# cover and extend the default config in https=//docs.astral.sh/ruff/configuration/
+extend-exclude = ["alembic"]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG001", # unused arguments in functions
+]
+ignore = [
+    "E501",   # line too long, handled by black
+    "B008",   # do not perform function calls in argument defaults
+    "W191",   # indentation contains tabs
+    "B904",   # Allow raising exceptions without from e, for HTTPException
+    "COM819", # Trailing comma prohibited
+    "D100",   # Missing docstring in public module(file)
+    "D104",   # Missing docstring in public package
+    "D203",   # 1 blank line required before class docstring
+    "E201",   # Whitespace after '('
+    "E202",   # Whitespace before ')'
+    "E203",   # Whitespace before '='
+    "E221",   # Multiple spaces before operator
+    "E241",   # Multiple spaces after ','
+    "E251",   # Unexpected spaces around keyword / parameter equals
+    "W291",   # Trailing whitespace
+    "W293",   # Blank line contains whitespace
+]
+
+isort = { combine-as-imports = true,  split-on-trailing-comma = false }
+
+# Avoid trying to fix flake8-bugbear (`B`) violations.
+unfixable = ["B"]
+
+[tool.ruff.format]
+docstring-code-format = true
+skip-magic-trailing-comma = true
+
+# Reference
+# 1. https=//github.com/Kludex/python-template/blob/main/template/%7B%7B%20project_slug%20%7D%7D/pyproject.toml.jinja
+# 2. https=//github.com/fastapi/full-stack-fastapi-template/blob/master/backend/pyproject.toml
+# 3. https=//github.com/pydantic/logfire
+# 4. https=//coverage.readthedocs.io/en/latest/index.html
