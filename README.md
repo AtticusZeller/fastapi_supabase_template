@@ -20,7 +20,7 @@ Un template de projet FastAPI intégrant Supabase pour l'authentification, la ba
 - **Documentation automatique** avec Swagger UI
 - **Tests unitaires** complets
 - **Qualité de code** avec hooks pre-commit, linting et formattage automatique
-- **Analyse de code** continue avec SonarCloud 
+- **Analyse de code** continue avec SonarCloud
 - **Couverture de code** avec Codecov
 
 ## Structure du projet
