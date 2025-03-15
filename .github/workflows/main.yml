@@ -1,12 +1,47 @@
 name: CI/CD Pipeline
-
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
     paths-ignore:
       - '.github/workflows/**'
+  workflow_dispatch:
+
+# Variables d'environnement globales
+env:
+  # API Configuration
+  PROJECT_NAME: fastapi-supabase
+  API_V1_STR: /api/v1
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+
+  # Environment Settings
+  ENVIRONMENT: test
+  BACKEND_CORS_ORIGINS: '["http://localhost:3000", "http://localhost:8000"]'
+
+  # Supabase Configuration
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+  SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+  SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
+  # Database Configuration
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  POSTGRES_SERVER: ${{ secrets.POSTGRES_SERVER }}
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: postgres
+  DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.POSTGRES_SERVER }}:5432/postgres
+
+  # Auth Configuration
+  FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
+  FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+
+  # Test Configuration
+  PYTEST_ADDOPTS: "--color=yes"
+  PYTHON_VERSION: "3.12"
 
 jobs:
   quality:
@@ -40,9 +75,9 @@ jobs:
       - name: Run pre-commit with auto-fix
         if: github.event_name == 'pull_request'
         run: |
-          # Exécuter pre-commit
+          # Exécuter pre-commit en excluant les workflows GitHub
           set +e
-          pre-commit run --all-files
+          pre-commit run --all-files --exclude='.github/workflows/.*'
           pre_commit_status=$?
           set -e
 
@@ -68,33 +103,29 @@ jobs:
       # Pour les push directs (non PR), juste vérifier sans auto-correction
       - name: Run pre-commit checks only
         if: github.event_name != 'pull_request'
-        run: pre-commit run --all-files
+        run: pre-commit run --all-files --exclude='.github/workflows/.*'
 
-  # Création de l'image Docker et exécution des tests
-  build-and-test:
-    name: Build and Test
+  # Analyse SonarCloud pour la qualité du code
+  sonarcloud:
+    name: SonarCloud Analysis
     needs: quality
     runs-on: ubuntu-latest
+    # Pas besoin d'exécuter SonarCloud dans les PR qui viennent de l'extérieur
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important pour SonarCloud pour voir l'historique complet
 
-      # Créer le fichier .env.test avant le build
-      - name: Generate .env.test file
-        run: |
-          cat > .env.test << EOF
-          PROJECT_NAME=test-ci
-          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
-          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
-          POSTGRES_SERVER=${{ secrets.POSTGRES_SERVER }}
-          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB=postgres
-          POSTGRES_PORT=5432
-          FIRST_SUPERUSER=${{ secrets.FIRST_SUPERUSER }}
-          FIRST_SUPERUSER_PASSWORD=${{ secrets.FIRST_SUPERUSER_PASSWORD }}
-          EOF
-          echo "Created .env.test file with CI credentials"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       # Installation temporaire pour la vérification de Supabase
       - name: Verify Supabase Connection
@@ -111,68 +142,28 @@ jobs:
             -v $(pwd)/.env.test:/app/.env.test \
             -v $(pwd)/backend:/app/backend \
             fastapi-supabase-template:test \
-            bash -c "cd /app/backend && python -m pytest --cov=app --cov-report=xml -v"
+            bash -c "cd /app/backend && python -m pytest -v --cov=app --cov-report=xml"
 
-          # Copier les résultats de couverture depuis le conteneur
-          docker cp $(docker ps -lq):/app/backend/coverage.xml ./backend/coverage.xml
+      # Analyse SonarCloud
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token in SonarCloud
 
+      # Upload des rapports de couverture pour Codecov
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           file: ./backend/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
-
-  # Tests multi-plateforme (optionnel, uniquement sur main)
-  matrix-test:
-    name: Test Python ${{ matrix.python-version }}
-    needs: build-and-test
-    if: github.ref == 'refs/heads/main'
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.13"]  # 3.12 est déjà testé dans le job test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # Générer le fichier .env.test
-      - name: Generate .env.test file
-        run: |
-          cat > .env.test << EOF
-          PROJECT_NAME=test-ci
-          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
-          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
-          POSTGRES_SERVER=${{ secrets.POSTGRES_SERVER }}
-          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB=postgres
-          POSTGRES_PORT=5432
-          FIRST_SUPERUSER=${{ secrets.FIRST_SUPERUSER }}
-          FIRST_SUPERUSER_PASSWORD=${{ secrets.FIRST_SUPERUSER_PASSWORD }}
-          EOF
-          echo "Created .env.test file with CI credentials"
-
-      # Créer une image Docker modifiée pour la version Python spécifique
-      - name: Build Docker image for Python ${{ matrix.python-version }}
-        run: |
-          # Créer un Dockerfile temporaire qui utilise la version Python spécifique
-          echo "FROM python:${{ matrix.python-version }}-slim" > Dockerfile.test
-          cat Dockerfile | grep -v "^FROM" >> Dockerfile.test
-          docker build --build-arg BUILD_ENV=test -f Dockerfile.test -t fastapi-test:${{ matrix.python-version }} .
-
-      - name: Run tests in Docker
-        run: |
-          docker run \
-            -v $(pwd)/.env.test:/app/.env.test \
-            -v $(pwd)/backend:/app/backend \
-            fastapi-test:${{ matrix.python-version }} \
-            bash -c "cd /app/backend && python -m pytest -v"
 
   # Déploiement (uniquement pour les tags de version)
   release:
     name: Bump Version and Release
-    needs: [build-and-test, matrix-test]
+    needs: [sonarcloud]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:

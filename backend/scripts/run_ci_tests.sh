@@ -15,11 +15,17 @@ if [ -d "backend" ]; then
 fi
 
 # Installer pytest-asyncio s'il n'est pas déjà installé
-python -m pip install pytest-asyncio httpx python-dotenv
+python -m pip install pytest-asyncio httpx python-dotenv pytest-cov
 
 # Exécuter les tests avec les paramètres appropriés
 echo "===== Exécution des tests en mode CI ====="
 echo "Note: Ceci simule l'environnement CI/CD pour les tests"
 
-# Exécuter pytest avec le mode verbeux et génération du rapport de couverture
-pytest -v --cov=app --cov-report=term
+# Exécuter pytest avec le mode verbeux et génération des rapports de couverture
+pytest -v --cov=app --cov-report=term --cov-report=xml --cov-report=html --junitxml=test-report.xml
+
+# Informations sur l'emplacement des rapports
+echo "\nRapports générés:"
+echo " - Rapport XML de couverture: $(pwd)/coverage.xml (pour SonarCloud)"
+echo " - Rapport HTML de couverture: $(pwd)/htmlcov/index.html"
+echo " - Rapport JUnit de tests: $(pwd)/test-report.xml"
