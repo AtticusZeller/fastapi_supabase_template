@@ -1,0 +1,41 @@
+name: Dependabot Auto-Merge
+
+on: pull_request_target
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Dépendance de Github Actions
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'github_actions') }}
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Approve Patch and Minor Updates
+        if: ${{ !contains(github.event.pull_request.title, 'bump') || contains(github.event.pull_request.title, '⬆️') }}
+        run: |
+          # Ne traiter automatiquement que les mises à jour mineures et de patchs
+          if echo "$PR_TITLE" | grep -E '(patch|minor)'; then
+            echo "Approving PR automatically as it's a patch or minor update"
+            gh pr review "$PR_URL" --approve -b "Approuvé automatiquement car il s'agit d'une mise à jour mineure ou de patch."
+            
+            # Uniquement merger automatiquement si ce n'est pas une mise à jour majeure
+            if ! echo "$PR_TITLE" | grep -E '(major)'; then
+              echo "Setting auto-merge for PR"
+              gh pr merge --auto --squash "$PR_URL"
+            fi
+          else
+            echo "Manual review needed for major update"
+            gh pr comment "$PR_URL" -b "Cette mise à jour majeure nécessite une revue manuelle."
+          fi
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          PR_TITLE: ${{github.event.pull_request.title}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
