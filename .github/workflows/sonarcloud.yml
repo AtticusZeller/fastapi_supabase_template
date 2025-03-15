@@ -1,0 +1,69 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:  # Pour permettre l'exécution manuelle
+
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    # Pas besoin d'exécuter SonarCloud dans les PR qui viennent de l'extérieur
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important pour SonarCloud pour voir l'historique complet
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Générer le fichier .env.test pour les tests
+      - name: Generate .env.test file
+        run: |
+          cat > .env.test << EOF
+          PROJECT_NAME=test-ci
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          POSTGRES_SERVER=${{ secrets.POSTGRES_SERVER }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=postgres
+          POSTGRES_PORT=5432
+          FIRST_SUPERUSER=${{ secrets.FIRST_SUPERUSER }}
+          FIRST_SUPERUSER_PASSWORD=${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+          EOF
+          echo "Created .env.test file with CI credentials"
+
+      # Installation temporaire pour la vérification de Supabase
+      - name: Verify Supabase Connection
+        run: |
+          python -m pip install python-dotenv httpx
+          python backend/scripts/verify_supabase.py
+
+      # Installer les dépendances et exécuter les tests avec génération des rapports
+      - name: Install dependencies and run tests
+        run: |
+          cd backend
+          uv sync --all-extras --dev
+          # Exécuter les tests avec génération du rapport XML pour SonarCloud
+          bash scripts/run_ci_tests.sh
+
+      # Analyse SonarCloud
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token in SonarCloud
