@@ -1,5 +1,12 @@
 # FastAPI Supabase Template
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=acout_fastapi_supabase_template&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=acout_fastapi_supabase_template)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=acout_fastapi_supabase_template&metric=coverage)](https://sonarcloud.io/summary/new_code?id=acout_fastapi_supabase_template)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=acout_fastapi_supabase_template&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=acout_fastapi_supabase_template)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=acout_fastapi_supabase_template&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=acout_fastapi_supabase_template)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=acout_fastapi_supabase_template&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=acout_fastapi_supabase_template)
+[![Codecov](https://codecov.io/gh/acout/fastapi_supabase_template/branch/main/graph/badge.svg)](https://codecov.io/gh/acout/fastapi_supabase_template)
+
 Un template de projet FastAPI intégrant Supabase pour l'authentification, la base de données et le stockage de fichiers.
 
 ## Fonctionnalités
@@ -13,6 +20,8 @@ Un template de projet FastAPI intégrant Supabase pour l'authentification, la ba
 - **Documentation automatique** avec Swagger UI
 - **Tests unitaires** complets
 - **Qualité de code** avec hooks pre-commit, linting et formattage automatique
+- **Analyse de code** continue avec SonarCloud 
+- **Couverture de code** avec Codecov
 
 ## Structure du projet
 
@@ -163,6 +172,8 @@ En résumé:
 - **pytest**: Tests unitaires et d'intégration
 - **pre-commit**: Hooks de pré-commit pour automatiser les vérifications
 - **GitHub Actions**: CI/CD pour exécuter les tests et vérifier la qualité du code
+- **SonarCloud**: Analyse statique du code et détection des problèmes
+- **Codecov**: Suivi de la couverture de code
 
 Pour plus de détails sur le processus de contribution, voir [CONTRIBUTING.md](CONTRIBUTING.md).
 
