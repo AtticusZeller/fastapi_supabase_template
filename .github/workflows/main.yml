@@ -105,10 +105,45 @@ jobs:
         if: github.event_name != 'pull_request'
         run: pre-commit run --all-files --exclude='.github/workflows/.*'
 
+  dependabot:
+    name: Dependabot Auto-Merge
+    runs-on: ubuntu-latest
+    needs: quality
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Dépendance de Github Actions
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'github_actions') }}
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Approve Patch and Minor Updates
+        if: ${{ !contains(github.event.pull_request.title, 'bump') || contains(github.event.pull_request.title, '⬆️') }}
+        run: |
+          # Ne traiter automatiquement que les mises à jour mineures et de patchs
+          if echo "$PR_TITLE" | grep -E '(patch|minor)'; then
+            echo "Approving PR automatically as it's a patch or minor update"
+            gh pr review "$PR_URL" --approve -b "Approuvé automatiquement car il s'agit d'une mise à jour mineure ou de patch."
+
+            # Uniquement merger automatiquement si ce n'est pas une mise à jour majeure
+            if ! echo "$PR_TITLE" | grep -E '(major)'; then
+              echo "Setting auto-merge for PR"
+              gh pr merge --auto --squash "$PR_URL"
+            fi
+          else
+            echo "Manual review needed for major update"
+            gh pr comment "$PR_URL" -b "Cette mise à jour majeure nécessite une revue manuelle."
+          fi
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          PR_TITLE: ${{github.event.pull_request.title}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
   # Analyse SonarCloud pour la qualité du code
   sonarcloud:
     name: SonarCloud Analysis
-    needs: quality
+    needs: dependabot
     runs-on: ubuntu-latest
     # Pas besoin d'exécuter SonarCloud dans les PR qui viennent de l'extérieur
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
@@ -159,6 +194,44 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
+
+  create-sentry-release:
+    runs-on: ubuntu-latest
+    needs: [quality, dependabot]
+    if: startsWith(github.ref, 'refs/tags/')
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      ENVIRONMENT: ${{ startsWith(github.ref, 'refs/tags/') && 'production' || github.ref == 'refs/heads/main' && 'staging' || 'development' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Récupérer tout l'historique pour avoir accès aux commits pour le changelog
+
+      - name: Déterminer la version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+            VERSION=$(git rev-parse --short HEAD)-staging
+          else
+            VERSION=$(git rev-parse --short HEAD)-dev
+          fi
+          echo "release_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version déterminée: $VERSION"
+
+      - name: Créer la release Sentry
+        uses: getsentry/action-release@v1
+        with:
+          auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          org: ${{ secrets.SENTRY_ORG }}
+          project: ${{ secrets.SENTRY_PROJECT }}
+          environment: ${{ env.ENVIRONMENT }}
+          version: ${{ steps.version.outputs.release_version }}
+          ignore_missing: true
+          ignore_empty: true
 
   # Déploiement (uniquement pour les tags de version)
   release:
