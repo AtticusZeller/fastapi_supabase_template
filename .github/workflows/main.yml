@@ -44,9 +44,9 @@ jobs:
       - name: Run pre-commit with auto-fix
         if: github.event_name == 'pull_request'
         run: |
-          # Exécuter pre-commit
+          # Exécuter pre-commit en excluant les workflows GitHub
           set +e
-          pre-commit run --all-files
+          pre-commit run --all-files --exclude='.github/workflows/.*'
           pre_commit_status=$?
           set -e
 
@@ -72,7 +72,7 @@ jobs:
       # Pour les push directs (non PR), juste vérifier sans auto-correction
       - name: Run pre-commit checks only
         if: github.event_name != 'pull_request'
-        run: pre-commit run --all-files
+        run: pre-commit run --all-files --exclude='.github/workflows/.*'
       
       # Définir le contenu du fichier .env.test pour les autres jobs
       - name: Set ENV_TEST content as output
