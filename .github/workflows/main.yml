@@ -202,6 +202,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
+          branch: develop
 
   create-sentry-release:
     runs-on: ubuntu-latest
