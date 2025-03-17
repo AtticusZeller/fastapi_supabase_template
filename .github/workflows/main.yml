@@ -68,8 +68,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install pre-commit
-        run: uv pip install pre-commit --system
+      - name: Install pre-commit and mypy
+        run: |
+          uv pip install pre-commit mypy types-requests types-python-dateutil types-PyYAML --system
+          cd backend
+          uv sync --python 3.12 --all-extras --dev
 
       # Une seule étape qui gère tout le processus de pre-commit et d'auto-correction
       - name: Run pre-commit with auto-fix

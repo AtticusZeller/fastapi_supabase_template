@@ -50,6 +50,21 @@ build-backend = "hatchling.build"
 [tool.mypy]
 strict = true
 exclude = ["venv", ".venv", "alembic"]
+disallow_any_explicit = false  # Pour autoriser Any explicite mais pas implicite
+disallow_untyped_defs = true   # Exige le typage des fonctions
+warn_return_any = true         # Avertit si une fonction typée retourne Any
+warn_unused_ignores = true     # Avertit des ignores superflus
+
+# Configurations pour les bibliothèques externes
+[[tool.mypy.overrides]]
+module = ["alembic.*", "supabase.*"]
+ignore_missing_imports = true
+
+# Pour les tests, on peut être moins strict
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
 
 [tool.pytest.ini_options]
 # Set additional command line options for pytest
