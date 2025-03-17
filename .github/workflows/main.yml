@@ -190,7 +190,7 @@ jobs:
             -v $(pwd)/.env.test:/app/.env.test \
             -v $(pwd)/backend:/app/backend \
             fastapi-supabase-template:test \
-            bash -c "cd /app/backend && python -m pytest -v --cov --junitxml=junit.xml -o junit_family=legacy"
+            bash -c "cd /app/backend && python -m pytest -v --cov --junitxml=junit.xml --cov-report=xml -o junit_family=legacy"
 
       # SonarCloud Analysis
       - name: SonarCloud Scan
@@ -201,6 +201,10 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./backend/coverage.xml
+          fail_ci_if_error: true
+          verbose: true
+
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
