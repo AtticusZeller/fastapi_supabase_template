@@ -45,18 +45,20 @@ env:
   SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
   SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
   SONAR_HOST_URL: https://sonarcloud.io
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
   # Test Configuration
   PYTEST_ADDOPTS: "--color=yes"
   PYTHON_VERSION: "3.12"
 
   # Deployment
-  # Variables pour les déploiements avec promotion d'images
+  # Variables for deployments with image promotion
   STAGING_ENV: staging
   PRODUCTION_ENV: production
   IMAGE_NAME: fastapi-supabase-template
   REGISTRY: ${{ vars.DOCKER_REGISTRY || 'ghcr.io' }}
-  
+
 jobs:
   quality:
     name: Lint and Format
@@ -128,33 +130,30 @@ jobs:
     needs: quality
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      
+
       - name: Install security tools
         run: |
           python -m pip install --upgrade pip
           pip install bandit safety
-      
+
       - name: Run Bandit (Python security linter)
         run: |
           bandit -r backend/ -ll -ii -f json -o bandit-results.json || true
           echo "Results saved to bandit-results.json"
-      
+
       - name: Check dependencies for vulnerabilities with Safety
         run: |
           cd backend
           safety check --full-report --file=pyproject.toml || true
-      
+
       - name: Check for secrets in code
         uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-      
+
       - name: Upload security scan results
         uses: actions/upload-artifact@v4
         with:
@@ -180,7 +179,6 @@ jobs:
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: Approve Patch and Minor Updates
         if: ${{ !contains(github.event.pull_request.title, 'bump') || contains(github.event.pull_request.title, '⬆️') }}
@@ -279,12 +277,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           message: |
             ## Coverage Report
-            
+
             Total coverage: ${{ env.COVERAGE_PCT }}%
-            
+
             <details>
             <summary>Details</summary>
-            
+
             ```
             $(grep -A 20 "<coverage " backend/coverage.xml)
             ```
@@ -304,17 +302,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Login to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -363,7 +361,7 @@ jobs:
           ignore_missing: true
           ignore_empty: true
 
-  # Deployment à l'environnement de staging (depuis main)
+  # Deploy to staging environment (from main)
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
@@ -380,25 +378,25 @@ jobs:
           port: ${{ secrets.STAGING_SSH_PORT || 22 }}
           script: |
             echo "Deploying to Staging environment..."
-            # Se connecter au registre Docker
+            # Login to Docker registry
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-            
-            # Récupérer la dernière image
+
+            # Pull latest image
             docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:staging
-            
-            # Déployer avec docker-compose
+
+            # Deploy with docker-compose
             cd ${{ secrets.STAGING_APP_PATH }}
             echo "IMAGE_TAG=staging" > .env
             docker-compose pull
             docker-compose up -d
-            
-            # Vérifier que l'application fonctionne
-            echo "Attente du démarrage de l'application..."
+
+            # Check if application is working
+            echo "Waiting for application to start..."
             sleep 10
             if curl -s --fail http://localhost:8000/api/v1/health; then
-              echo "✅ Application déployée avec succès!"
+              echo "✅ Application deployed successfully!"
             else
-              echo "❌ Échec du déploiement - l'application ne répond pas."
+              echo "❌ Deployment failed - application not responding."
               exit 1
             fi
 
@@ -432,7 +430,7 @@ jobs:
           body_path: CHANGES.md
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  # Deployment en production (uniquement pour les tags)
+  # Deploy to production (only for tags)
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
@@ -443,7 +441,7 @@ jobs:
       - name: Get Release Tag
         id: get_tag
         run: echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        
+
       - name: Deploy to Production Environment
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -453,87 +451,24 @@ jobs:
           port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
           script: |
             echo "Deploying to Production environment..."
-            # Se connecter au registre Docker
+            # Login to Docker registry
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-            
-            # Récupérer l'image avec le tag de version
+
+            # Pull version tagged image
             docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.get_tag.outputs.RELEASE_TAG }}
-            
-            # Déployer avec docker-compose
+
+            # Deploy with docker-compose
             cd ${{ secrets.PRODUCTION_APP_PATH }}
             echo "IMAGE_TAG=${{ steps.get_tag.outputs.RELEASE_TAG }}" > .env
             docker-compose pull
             docker-compose up -d
-            
-            # Vérifier que l'application fonctionne
-            echo "Attente du démarrage de l'application..."
+
+            # Check if application is working
+            echo "Waiting for application to start..."
             sleep 10
             if curl -s --fail http://localhost:8000/api/v1/health; then
-              echo "✅ Application déployée avec succès!"
+              echo "✅ Application deployed successfully!"
             else
-              echo "❌ Échec du déploiement - l'application ne répond pas."
+              echo "❌ Deployment failed - application not responding."
               exit 1
             fi
-
-  # Déploiement réussi - notification Slack
-  notify:
-    name: Notification de déploiement
-    runs-on: ubuntu-latest
-    needs: [deploy-staging, deploy-production]
-    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
-    steps:
-      - name: Notification Slack
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
-        uses: slackapi/slack-github-action@v1.25.0
-        with:
-          payload: |
-            {
-              "text": "🚀 *Déploiement réussi*",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "🚀 *Déploiement réussi*"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Application:*\n${{ env.PROJECT_NAME }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Environnement:*\n${{ github.ref == 'refs/heads/main' && 'Staging' || 'Production' }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Version:*\n${{ github.ref_name }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Déployé par:*\n${{ github.actor }}"
-                    }
-                  ]
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
-                      "text": {
-                        "type": "plain_text",
-                        "text": "Voir le workflow",
-                        "emoji": true
-                      },
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
