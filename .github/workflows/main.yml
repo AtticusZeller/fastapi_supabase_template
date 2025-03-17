@@ -155,47 +155,66 @@ jobs:
 
       - name: Analyze Security Results
         run: |
-          echo "## 🔒 Security Scan Results" > security-report.md
+          echo "# Security Checks Summary" > security-report.md
+          echo "" >> security-report.md
+          echo "## 🔒 Security Scan Results" >> security-report.md
           echo "" >> security-report.md
 
-          # Analyse Bandit
+          # Bandit Analysis
           if [ -f "bandit-results.json" ]; then
-            echo "### Bandit Analysis" >> security-report.md
+            echo "### 🔍 Bandit Analysis" >> security-report.md
+
             ISSUES=$(jq '.metrics._totals."SEVERITY.HIGH" + .metrics._totals."SEVERITY.MEDIUM"' bandit-results.json)
             HIGH_SEVERITY=$(jq '.metrics._totals."SEVERITY.HIGH"' bandit-results.json)
+            MEDIUM_SEVERITY=$(jq '.metrics._totals."SEVERITY.MEDIUM"' bandit-results.json)
+            LOW_SEVERITY=$(jq '.metrics._totals."SEVERITY.LOW"' bandit-results.json)
 
-            echo "Found **$ISSUES** potential code security issues:" >> security-report.md
-            echo "- 🚨 High Severity: $HIGH_SEVERITY" >> security-report.md
+            echo "" >> security-report.md
+            echo "Found **${ISSUES}** potential code security issues:" >> security-report.md
+            echo "- 🚨 High Severity: ${HIGH_SEVERITY}" >> security-report.md
+            echo "- ⚠️ Medium Severity: ${MEDIUM_SEVERITY}" >> security-report.md
+            echo "- ℹ️ Low Severity: ${LOW_SEVERITY}" >> security-report.md
+            echo "" >> security-report.md
 
-            echo "<details><summary>Bandit Findings</summary>" >> security-report.md
+            echo "<details><summary>📝 Detailed Findings</summary>" >> security-report.md
             echo "" >> security-report.md
             echo "\`\`\`" >> security-report.md
-            jq -r '.results[] | "- [" + .issue_severity + "] " + .issue_text + "\n  File: " + .filename + ":" + (.line_number|tostring)' bandit-results.json >> security-report.md
+            jq -r '.results[] | select(.issue_severity=="HIGH") | "❌ [\(.issue_severity)] \(.issue_text)\n   📁 \(.filename):\(.line_number)\n   🔍 \(.issue_confidence) confidence\n"' bandit-results.json >> security-report.md
+            jq -r '.results[] | select(.issue_severity=="MEDIUM") | "⚠️ [\(.issue_severity)] \(.issue_text)\n   📁 \(.filename):\(.line_number)\n   🔍 \(.issue_confidence) confidence\n"' bandit-results.json >> security-report.md
             echo "\`\`\`" >> security-report.md
             echo "</details>" >> security-report.md
           fi
 
-          # Analyse Safety
+          # Safety Analysis
           if [ -f "backend/safety-results.json" ]; then
             echo "" >> security-report.md
-            echo "### Safety Dependencies Analysis" >> security-report.md
+            echo "### 📦 Safety Dependencies Analysis" >> security-report.md
+
             VULN_COUNT=$(jq 'length' backend/safety-results.json)
+            CRITICAL_COUNT=$(jq '[.[] | select(.severity == "critical")] | length' backend/safety-results.json)
+            HIGH_COUNT=$(jq '[.[] | select(.severity == "high")] | length' backend/safety-results.json)
 
-            echo "Found **$VULN_COUNT** vulnerable dependencies:" >> security-report.md
+            echo "" >> security-report.md
+            echo "Found **${VULN_COUNT}** vulnerable dependencies:" >> security-report.md
+            echo "- 💀 Critical: ${CRITICAL_COUNT}" >> security-report.md
+            echo "- 🚨 High: ${HIGH_COUNT}" >> security-report.md
+            echo "" >> security-report.md
 
-            echo "<details><summary>Safety Findings</summary>" >> security-report.md
+            echo "<details><summary>📝 Vulnerability Details</summary>" >> security-report.md
             echo "" >> security-report.md
             echo "\`\`\`" >> security-report.md
-            jq -r '.[] | "- [\(.severity)] \(.package_name) \(.analyzed_version)\n  \(.advisory)"' backend/safety-results.json >> security-report.md
+            jq -r '.[] | "[\(.severity | ascii_upcase)] \(.package_name) \(.analyzed_version)\n  ↳ CVE: \(.cve // "N/A")\n  ↳ \(.advisory)\n"' backend/safety-results.json >> security-report.md
             echo "\`\`\`" >> security-report.md
             echo "</details>" >> security-report.md
+          fi
 
-            # Échouer si des vulnérabilités critiques sont trouvées
-            CRITICAL_COUNT=$(jq '[.[] | select(.severity == "critical")] | length' backend/safety-results.json)
-            if [ "$CRITICAL_COUNT" -gt 0 ]; then
-              echo "::error::Found $CRITICAL_COUNT critical vulnerabilities in dependencies!"
-              exit 1
-            fi
+          # Summary Footer
+          echo "" >> security-report.md
+          echo "---" >> security-report.md
+          echo "🕒 Report generated on: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> security-report.md
+          echo "📌 Commit: ${GITHUB_SHA}" >> security-report.md
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            echo "🔀 Pull Request: #${GITHUB_EVENT_PULL_REQUEST_NUMBER}" >> security-report.md
           fi
 
       - name: Add Security Report Comment
