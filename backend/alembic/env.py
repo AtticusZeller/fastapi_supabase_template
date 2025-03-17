@@ -42,7 +42,7 @@ target_metadata = Base.metadata
 
 
 def get_url():
-    """Retourne l'URL de connexion pour le session pooler Supabase"""
+    """Retourne l'URL de connection pour le session pooler Supabase"""
     project_id = os.getenv("SUPABASE_PROJECT_ID")
     password = os.getenv("POSTGRES_PASSWORD")
     server = os.getenv("POSTGRES_SERVER", "aws-0-eu-west-3.pooler.supabase.com")
@@ -89,7 +89,7 @@ def process_revision_directives(context, revision, directives):
 
     # Pour chaque table, ajouter les opérations RLS
     for table_name in created_tables:
-        # Trouver le modèle correspondant
+        # Trouver le modèle correspondent
         model = None
         for m in [Item, Profile]:  # Ajoutez tous vos modèles ici
             if (hasattr(m, '__tablename__') and
@@ -189,7 +189,7 @@ def process_revision_directives(context, revision, directives):
 
 
 def run_migrations_offline() -> None:
-    """Pour générer le SQL sans connexion DB."""
+    """Pour générer le SQL sans connection DB."""
     url = get_url()
     context.configure(
         url=url,

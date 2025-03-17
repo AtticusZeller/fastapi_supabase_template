@@ -109,9 +109,9 @@ Les outils de sécurité peuvent parfois signaler des faux positifs. Pour les g�
 
 ### Procédure en cas de détection
 
-1. **Évaluer la gravité** : Tous les problèmes de sécurité ne sont pas critiques. Évaluez l'impact potentiel.
+1. **Évaluer la gravité** : Tous les problèmes de sécurité ne sont pas critiques. Évaluez l'impact potential.
 
-2. **Corriger rapidement** : Les vulnérabilités critiques doivent être corrigées immédiatement, en particulier celles qui exposent des données sensibles.
+2. **Corriger rapidement** : Les vulnérabilités critiques doivent être corrigées immédiatement, en particulier cells qui exposent des données sensibles.
 
 3. **Documenter les décisions** : Si vous décidez d'ignorer certaines alertes, documentez clairement pourquoi dans le code ou dans un document de décisions de sécurité.
 

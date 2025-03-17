@@ -1,6 +1,6 @@
 # Configuration Pre-Commit
 
-Ce document décrit les hooks pre-commit utilisés dans ce projet et explique comment les configurer correctement.
+Ce document décrit les hooks pre-commit utilisés dans ce project et explique comment les configurer correctement.
 
 ## Installation de pre-commit
 
@@ -13,18 +13,18 @@ pre-commit install
 
 ### Hooks de base
 
-- **check-toml/yaml/json** - Vérifie la syntaxe des fichiers de configuration
-- **pretty-format-json** - Formate automatiquement les fichiers JSON
+- **check-toml/yaml/json** - Vérifie la syntax des fichiers de configuration
+- **pretty-format-json** - Format automatiquement les fichiers JSON
 - **check-added-large-files** - Évite l'ajout de fichiers volumineux (>50MB)
 - **end-of-file-fixer** - S'assure que les fichiers se terminent par une ligne vide
-- **trailing-whitespace** - Supprime les espaces en fin de ligne
+- **trailing-whitespace** - Supprime les escapes en fin de ligne
 - **detect-private-key** - Évite la fuite de clés privées
 
 ### Checks de qualité de code
 
 - **codespell** - Vérifie l'orthographe dans le code et les commentaires
   - Utilise `.github/codespell-ignore.txt` pour les mots légitimes
-- **ruff** - Linting Python avancé (combinaison de flake8, isort, etc.)
+- **ruff** - Linting Python avancé (combination de flake8, isort, etc.)
   - Certaines règles sont désactivées temporairement pour faciliter le workflow
 - **ruff-format** - Formattage du code Python (similaire à black)
 - **mypy** - Vérification de types statiques

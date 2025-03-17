@@ -22,7 +22,7 @@ def configure_sentry() -> None:
     """Configure Sentry SDK if DSN is provided"""
     if settings.SENTRY_DSN:
         env = settings.SENTRY_ENVIRONMENT or settings.ENVIRONMENT
-        
+
         # Initialize Sentry
         sentry_sdk.init(
             dsn=settings.SENTRY_DSN,

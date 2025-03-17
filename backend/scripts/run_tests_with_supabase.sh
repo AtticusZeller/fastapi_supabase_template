@@ -10,7 +10,7 @@ if [ ! -d "backend" ] && [ -d "../backend" ]; then
 fi
 
 if [ ! -d "backend" ]; then
-    echo "Erreur: Le script doit être exécuté depuis la racine du projet ou le dossier backend"
+    echo "Erreur: Le script doit être exécuté depuis la racine du project ou le dossier backend"
     exit 1
 
 fi
@@ -18,12 +18,12 @@ fi
 # Vérifier si le fichier .env.test existe
 if [ ! -f ".env.test" ] && [ ! -f "backend/.env.test" ]; then
     echo "Erreur: Le fichier .env.test n'existe pas"
-    echo "Créez un fichier .env.test à la racine du projet ou dans le dossier backend"
+    echo "Créez un fichier .env.test à la racine du project ou dans le dossier backend"
     exit 1
 fi
 
-# Vérifier la connexion Supabase
-echo "Vérification de la connexion Supabase..."
+# Vérifier la connection Supabase
+echo "Vérification de la connection Supabase..."
 python -m pip install -q httpx python-dotenv
 python backend/scripts/verify_supabase.py
 

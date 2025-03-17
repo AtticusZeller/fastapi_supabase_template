@@ -8,8 +8,8 @@ Sentry est un service de surveillance des erreurs qui aide les développeurs à 
 
 ### Prérequis
 
-1. Compte Sentry avec un projet configuré
-2. Organisation Sentry et nom de projet définis
+1. Compte Sentry avec un project configuré
+2. Organisation Sentry et nom de project définis
 3. Token d'authentification Sentry
 
 ### Variables d'environnement requises
@@ -20,7 +20,7 @@ Dans les paramètres secrets GitHub, ajoutez les variables suivantes :
 |----------|-------------|
 | `SENTRY_AUTH_TOKEN` | Token d'authentification généré dans Sentry |
 | `SENTRY_ORG` | Nom de votre organisation Sentry |
-| `SENTRY_PROJECT` | Nom de votre projet Sentry |
+| `SENTRY_PROJECT` | Nom de votre project Sentry |
 
 Dans votre fichier `.env` (et dans l'environnement de déploiement), ajoutez :
 
@@ -42,16 +42,16 @@ Le workflow Sentry est automatiquement déclenché lors des opérations suivante
 Le workflow effectue automatiquement :
 
 1. La détermination automatique de la version basée sur le contexte Git
-2. La création d'une release Sentry avec le bon environnement
+2. La création d'une release Sentry avec le bon environment
 3. L'association des commits à la release pour le suivi des problèmes
 
-## Environnements
+## Environments
 
-Le système configure automatiquement les environnements Sentry en fonction du contexte :
+Le système configure automatiquement les environments Sentry en function du contexte :
 
-- Tags (`v*`) → environnement **production**
-- Branche `main` → environnement **staging**
-- Branche `develop` → environnement **development**
+- Tags (`v*`) → environment **production**
+- Branche `main` → environment **staging**
+- Branche `develop` → environment **development**
 
 ## Dépannage
 
@@ -60,7 +60,7 @@ Le système configure automatiquement les environnements Sentry en fonction du c
 Vérifiez les points suivants :
 
 1. Les secrets GitHub sont-ils correctement configurés?
-2. Le token d'authentification est-il valide et non expiré?
+2. Le token d'authentification est-il valid et non expiré?
 
 ### Les erreurs n'apparaissent pas dans Sentry
 
@@ -68,7 +68,7 @@ Vérifiez les points suivants :
 2. Assurez-vous que l'initialisation de Sentry est effectuée au début de votre application
 3. Vérifiez que la variable `SENTRY_RELEASE` correspond à la version déployée
 
-## Ressources additionnelles
+## Resources additionnelles
 
 - [Documentation officielle Sentry pour Python](https://docs.sentry.io/platforms/python/)
 - [Documentation FastAPI avec Sentry](https://docs.sentry.io/platforms/python/guides/fastapi/)

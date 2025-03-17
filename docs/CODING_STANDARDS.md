@@ -1,6 +1,6 @@
 # Standards de codage
 
-Ce document définit les standards de codage pour le projet Insperio Labs. Ces standards sont appliqués automatiquement via les outils de linting et de formatage configurés dans le projet.
+Ce document définit les standards de codage pour le project Insperio Labs. Ces standards sont appliqués automatiquement via les outils de linting et de formatage configurés dans le project.
 
 ## Table des matières
 
@@ -27,7 +27,7 @@ Ce document définit les standards de codage pour le projet Insperio Labs. Ces s
 
 ### Cohérence
 
-- Suivez les conventions existantes du projet.
+- Suivez les conventions existantes du project.
 - Soyez cohérent dans le nommage, la structure et le style.
 
 ## Style de code Python
@@ -35,17 +35,17 @@ Ce document définit les standards de codage pour le projet Insperio Labs. Ces s
 ### Formatage
 
 - Nous utilisons **Ruff** comme formateur de code, configuré pour suivre un style proche de Black.
-- Indentation: 4 espaces (pas de tabulations).
+- Indentation: 4 escapes (pas de tabulations).
 - Longueur maximale de ligne: 88 caractères.
 - Utilisez des lignes vides pour séparer les sections logiques du code.
 
 ### Conventions de nommage
 
 - **Classes**: `PascalCase` (ex: `UserProfile`, `DatabaseManager`)
-- **Fonctions, méthodes, variables**: `snake_case` (ex: `get_user_data`, `db_connection`)
+- **Functions, méthodes, variables**: `snake_case` (ex: `get_user_data`, `db_connection`)
 - **Constantes**: `UPPER_SNAKE_CASE` (ex: `MAX_RETRY_COUNT`, `API_VERSION`)
 - **Modules/packages**: `snake_case` (ex: `user_authentication`, `data_models`)
-- **Arguments de fonction et variables locales**: `snake_case`
+- **Arguments de function et variables locales**: `snake_case`
 - **Variables privées et méthodes**: commencent par `_` (ex: `_internal_cache`)
 
 ### Imports
@@ -53,11 +53,11 @@ Ce document définit les standards de codage pour le projet Insperio Labs. Ces s
 - Organisez les imports par groupes:
   1. Bibliothèque standard Python
   2. Bibliothèques tierces
-  3. Imports du projet
+  3. Imports du project
 - Dans chaque groupe, les imports doivent être par ordre alphabétique.
 - Préférez les imports absolus aux imports relatifs.
 
-Exemple:
+Example:
 
 ```python
 # Bibliothèque standard
@@ -71,7 +71,7 @@ import fastapi
 from pydantic import BaseModel, Field
 from sqlmodel import select, Session
 
-# Imports du projet
+# Imports du project
 from app.core.config import settings
 from app.db.session import get_session
 from app.models.user import User
@@ -79,11 +79,11 @@ from app.models.user import User
 
 ### Typing
 
-- Utilisez des annotations de type pour toutes les fonctions et méthodes.
+- Utilisez des annotations de type pour toutes les functions et méthodes.
 - Utilisez `Optional` pour les paramètres qui peuvent être `None`.
 - Utilisez des types génériques (List, Dict, etc.) à partir du module `typing`.
 
-Exemple:
+Example:
 
 ```python
 from typing import List, Optional, Dict
@@ -109,10 +109,10 @@ def create_users(user_data: List[Dict[str, any]]) -> List[User]:
 
 ### Docstrings
 
-- Utilisez des docstrings pour les modules, classes, méthodes et fonctions.
+- Utilisez des docstrings pour les modules, classes, méthodes et functions.
 - Suivez le format Google pour les docstrings.
 
-Exemple:
+Example:
 
 ```python
 def fetch_user_data(user_id: int, include_profile: bool = True) -> Dict[str, any]:
@@ -121,7 +121,7 @@ Récupère les données d'un utilisateur depuis la base de données.
 
 Args:
     user_id: L'identifiant de l'utilisateur.
-    include_profile: Si True, inclut les informations de profil.
+    include_profile: Si True, inclut les information de profil.
 
 Returns:
     Un dictionnaire contenant les données de l'utilisateur.
@@ -153,24 +153,24 @@ Raises:
 
 ### Types de tests
 
-- **Tests unitaires**: Testent des fonctions/classes individuelles.
+- **Tests unitaires**: Testent des functions/classes individuelles.
 - **Tests d'intégration**: Testent l'interaction entre différents composants.
 - **Tests API**: Testent les endpoints FastAPI avec httpx.
 
 ## Sécurité
 
-- Évitez de hardcoder des informations sensibles (mots de passe, clés API).
+- Évitez de hardcoder des information sensibles (mots de passe, clés API).
 - Utilisez des variables d'environnement pour les configurations sensibles.
 - Validez toutes les entrées utilisateur côté client et serveur.
 - Utilisez des requêtes paramétrées pour éviter les injections SQL.
 
 ## Outils d'application automatique
 
-Notre projet utilise plusieurs outils pour aider à appliquer ces standards:
+Notre project utilise plusieurs outils pour aider à appliquer ces standards:
 
 ### Ruff
 
-Ruff est un linter et formateur de code Python rapide. Il remplace Flake8, Black, isort et d'autres outils. La configuration se trouve dans `pyproject.toml`.
+Ruff est un linter et formateur de code Python rapide. Il replace Flake8, Black, isort et d'autres outils. La configuration se trouve dans `pyproject.toml`.
 
 ### pre-commit
 
@@ -192,4 +192,4 @@ Notre workflow GitHub Actions vérifie automatiquement que le code respecte ces 
 
 ---
 
-Ces standards sont évolutifs et peuvent être modifiés pour mieux répondre aux besoins du projet. Les suggestions d'amélioration sont toujours bienvenues.
+Ces standards sont évolutifs et peuvent être modifiés pour mieux répondre aux besoins du project. Les suggestions d'amélioration sont toujours bienvenues.
