@@ -23,7 +23,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
-        args: [ --write-changes ]
+        args: [--write-changes, --ignore-words=.github/codespell-ignore.txt, --skip="*.lock,*.css,*.min.js"]
         files: \.(py|sh|json|yml|yaml|md)$
 
   # Réactivation de ruff avec des règles plus permissives
