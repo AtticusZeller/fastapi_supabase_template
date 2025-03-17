@@ -9,7 +9,7 @@ on:
       - '.github/workflows/**'
   workflow_dispatch:
 
-# Variables d'environnement globales
+# Global environment variables
 env:
   # API Configuration
   PROJECT_NAME: fastapi-supabase
@@ -39,6 +39,13 @@ env:
   FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
   FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
 
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+  SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+  SONAR_HOST_URL: https://sonarcloud.io
+
   # Test Configuration
   PYTEST_ADDOPTS: "--color=yes"
   PYTHON_VERSION: "3.12"
@@ -47,7 +54,7 @@ jobs:
   quality:
     name: Lint and Format
     runs-on: ubuntu-latest
-    # Ajouter la permission workflows au niveau du job
+    # Add workflows permission at job level
     permissions:
       contents: write
       pull-requests: write
@@ -74,36 +81,36 @@ jobs:
           cd backend
           uv sync --python 3.12 --all-extras --dev
 
-      # Une seule étape qui gère tout le processus de pre-commit et d'auto-correction
+      # Single step handling pre-commit process and auto-fix
       - name: Run pre-commit with auto-fix
         if: github.event_name == 'pull_request'
         run: |
-          # Exécuter pre-commit en excluant les workflows GitHub
+          # Run pre-commit excluding GitHub workflows
           set +e
           pre-commit run --all-files --exclude='.github/workflows/.*'
           pre_commit_status=$?
           set -e
 
-          # Si des modifications ont été effectuées
+          # If changes were made
           if [ $pre_commit_status -eq 1 ]; then
-            echo "Pre-commit a corrigé des problèmes de formatage. Commit des changements..."
+            echo "Pre-commit fixed formatting issues. Committing changes..."
 
-            # Configurer Git
+            # Configure Git
             git config --local user.email "actions@github.com"
             git config --local user.name "GitHub Actions"
 
-            # Commit et push
+            # Commit and push
             git add -A
-            git commit -m "[STYLE] Correction automatique du formatage (pre-commit)"
+            git commit -m "[STYLE] Automatic formatting fix (pre-commit)"
             git push
 
-            # Message pour les logs
-            echo "✅ Corrections de formatage effectuées et poussées sur la branche."
+            # Log message
+            echo "✅ Formatting fixes made and pushed to branch."
           else
-            echo "✅ Aucun problème de formatage détecté."
+            echo "✅ No formatting issues detected."
           fi
 
-      # Pour les push directs (non PR), juste vérifier sans auto-correction
+      # For direct pushes (non PR), just check without auto-fix
       - name: Run pre-commit checks only
         if: github.event_name != 'pull_request'
         run: pre-commit run --all-files --exclude='.github/workflows/.*'
@@ -119,7 +126,7 @@ jobs:
       issues: write
       repository-projects: write
     steps:
-      - name: Dépendance de Github Actions
+      - name: GitHub Actions Dependencies
         if: ${{ contains(github.event.pull_request.labels.*.name, 'github_actions') }}
         run: gh pr merge --auto --squash "$PR_URL"
         env:
@@ -129,36 +136,35 @@ jobs:
       - name: Approve Patch and Minor Updates
         if: ${{ !contains(github.event.pull_request.title, 'bump') || contains(github.event.pull_request.title, '⬆️') }}
         run: |
-          # Ne traiter automatiquement que les mises à jour mineures et de patchs
+          # Only automatically process minor and patch updates
           if echo "$PR_TITLE" | grep -E '(patch|minor)'; then
             echo "Approving PR automatically as it's a patch or minor update"
-            gh pr review "$PR_URL" --approve -b "Approuvé automatiquement car il s'agit d'une mise à jour mineure ou de patch."
+            gh pr review "$PR_URL" --approve -b "Automatically approved as this is a minor or patch update."
 
-            # Uniquement merger automatiquement si ce n'est pas une mise à jour majeure
+            # Only auto-merge if it's not a major update
             if ! echo "$PR_TITLE" | grep -E '(major)'; then
               echo "Setting auto-merge for PR"
               gh pr merge --auto --squash "$PR_URL"
             fi
           else
             echo "Manual review needed for major update"
-            gh pr comment "$PR_URL" -b "Cette mise à jour majeure nécessite une revue manuelle."
+            gh pr comment "$PR_URL" -b "This major update requires manual review."
           fi
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           PR_TITLE: ${{github.event.pull_request.title}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
-  # Analyse SonarCloud pour la qualité du code
+  # SonarCloud analysis for code quality
   sonarcloud:
     name: SonarCloud Analysis
-    needs: dependabot
+    needs: quality
     runs-on: ubuntu-latest
-    # Pas besoin d'exécuter SonarCloud dans les PR qui viennent de l'extérieur
+    # No need to run SonarCloud on PRs from external repositories
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Important pour SonarCloud pour voir l'historique complet
+          fetch-depth: 0  # Important for SonarCloud to see complete history
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -170,7 +176,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Installation temporaire pour la vérification de Supabase
+      # Temporary installation for Supabase verification
       - name: Verify Supabase Connection
         run: |
           python -m pip install python-dotenv httpx
@@ -185,39 +191,39 @@ jobs:
             -v $(pwd)/.env.test:/app/.env.test \
             -v $(pwd)/backend:/app/backend \
             fastapi-supabase-template:test \
-            bash -c "cd /app/backend && python -m pytest -v --cov=app --cov-report=xml"
+            bash -c "cd /app/backend && python -m pytest -v --cov --junitxml=junit.xml --cov-report=xml -o junit_family=legacy"
 
-      # Analyse SonarCloud
+      # SonarCloud Analysis
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token in SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
 
-      # Upload des rapports de couverture pour Codecov
+      # Upload coverage reports to Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          file: ./backend/coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./backend/coverage.xml
           fail_ci_if_error: true
           verbose: true
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   create-sentry-release:
     runs-on: ubuntu-latest
     needs: [sonarcloud]
     if: startsWith(github.ref, 'refs/tags/')
     env:
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-      SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
       ENVIRONMENT: ${{ startsWith(github.ref, 'refs/tags/') && 'production' || github.ref == 'refs/heads/main' && 'staging' || 'development' }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Récupérer tout l'historique pour avoir accès aux commits pour le changelog
+          fetch-depth: 0  # Get full history to access commits for changelog
 
-      - name: Déterminer la version
+      - name: Determine version
         id: version
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
@@ -228,9 +234,9 @@ jobs:
             VERSION=$(git rev-parse --short HEAD)-dev
           fi
           echo "release_version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version déterminée: $VERSION"
+          echo "Version determined: $VERSION"
 
-      - name: Créer la release Sentry
+      - name: Create Sentry Release
         uses: getsentry/action-release@v1
         with:
           auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -241,7 +247,7 @@ jobs:
           ignore_missing: true
           ignore_empty: true
 
-  # Déploiement (uniquement pour les tags de version)
+  # Deployment (only for version tags)
   release:
     name: Bump Version and Release
     needs: [create-sentry-release]
