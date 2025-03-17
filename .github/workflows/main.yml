@@ -110,6 +110,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality
     if: ${{ github.actor == 'dependabot[bot]' }}
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      repository-projects: write
     steps:
       - name: Dépendance de Github Actions
         if: ${{ contains(github.event.pull_request.labels.*.name, 'github_actions') }}
