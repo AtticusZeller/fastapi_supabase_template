@@ -1,0 +1,16 @@
+[allowlist]
+  description = "Global allow list"
+  paths = [
+    '''gitleaks.toml''',
+    '''(.*?)(jpg|gif|doc|pdf|bin)$''',
+    '''(go.mod|go.sum)$'''
+  ]
+
+[[rules]]
+  description = "Generic Secret"
+  regex = '''(?i)(secret|password|token|key|pwd)[\s]*[=:]\s*['\"][^'"]{8,}['"]\s*$'''
+
+[[rules]]
+  description = "High Entropy String"
+  regex = '''[0-9a-zA-Z-._+/=]{40,}'''
+  entropy = 4.5

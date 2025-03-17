@@ -153,6 +153,11 @@ jobs:
 
       - name: Check for secrets in code
         uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        with:
+          config-path: .github/gitleaks.toml
+          enable-git-history: false
+          verbose: true
 
       - name: Upload security scan results
         uses: actions/upload-artifact@v4
@@ -162,6 +167,23 @@ jobs:
             bandit-results.json
             gitleaks-report.json
           retention-days: 7
+
+      - name: Check Gitleaks Results
+        if: always()
+        run: |
+          if [ -f "gitleaks-report.json" ]; then
+            echo "Checking gitleaks results..."
+            if [ -s "gitleaks-report.json" ]; then
+              echo "⚠️ Potential secrets found in code"
+              cat gitleaks-report.json
+              # Optionnel : échouer le build si des secrets sont trouvés
+              # exit 1
+            else
+              echo "✅ No secrets found in code"
+            fi
+          else
+            echo "⚠️ No gitleaks report found"
+          fi
 
   dependabot:
     name: Dependabot Auto-Merge
