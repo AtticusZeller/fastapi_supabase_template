@@ -236,7 +236,7 @@ jobs:
   # Déploiement (uniquement pour les tags de version)
   release:
     name: Bump Version and Release
-    needs: [sonarcloud]
+    needs: [create-sentry-release]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
