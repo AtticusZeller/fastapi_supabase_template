@@ -18,13 +18,13 @@ repos:
       - id: trailing-whitespace
       - id: detect-private-key
 
-  # Temporarily disable codespell
-  # - repo: https://github.com/codespell-project/codespell
-  #   rev: v2.4.1
-  #   hooks:
-  #     - id: codespell
-  #       args: [--write-changes, --ignore-words=.github/codespell-ignore.txt]
-  #       files: \.(py|sh|json|yml|yaml|md)$
+  # Réactivation de codespell
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args: [--write-changes, --ignore-words=.github/codespell-ignore.txt]
+        files: \.(py|sh|json|yml|yaml|md)$
 
   # Réactivation de ruff avec des règles plus permissives
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -41,22 +41,35 @@ repos:
         ]
       - id: ruff-format
 
-  # Disabled due to executable not found error
-  # - repo: https://github.com/hadolint/hadolint
-  #   rev: v2.13.1-beta
-  #   hooks:
-  #     - id: hadolint
-  #       name: Lint Dockerfiles
-  #       description: Runs hadolint to lint Dockerfiles
-  #       entry: hadolint
-  #       language: system
-  #       types: ["dockerfile"]
+  # Réactivation de hadolint avec configuration correcte
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        name: Lint Dockerfiles
+        description: Runs hadolint to lint Dockerfiles
+        types: ["dockerfile"]
 
-  # Disabled due to permission issues
-  # - repo: https://github.com/astral-sh/uv-pre-commit
-  #   rev: 0.5.26
-  #   hooks:
-  #     - id: uv-lock
+  # Réactivation de uv-lock avec configuration ajustée
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.5.26
+    hooks:
+      - id: uv-lock
+        args: ["--backend"]
+
+  # Vérification des secrets avec detect-secrets
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        exclude: (uv\.lock$|.*\.md$|\.secrets\.baseline$)
+
+  # Validation de schémas OpenAPI
+  - repo: https://github.com/APIDevTools/swagger-cli
+    rev: v4.0.4
+    hooks:
+      - id: swagger-validation
+        files: openapi\.yaml$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0  # Utilisez la même version que dans vos dépendances
@@ -70,8 +83,11 @@ repos:
     args: [--ignore-missing-imports, --disallow-untyped-defs]
 
 ci:
-  autofix_commit_msg: 🎨 [pre-commit.ci] Auto format from pre-commit.com hooks
+  autofix_commit_msg: 🤖 [pre-commit.ci] Corrections automatiques des standards
   # Settings for the https://pre-commit.ci/ continuous integration service
   autofix_prs: true
-  autoupdate_commit_msg: ⬆ [pre-commit.ci] pre-commit autoupdate
+  autoupdate_branch: develop
+  autoupdate_commit_msg: ⬆️ [pre-commit.ci] Mise à jour des hooks pre-commit
   autoupdate_schedule: monthly
+  skip: []
+  submodules: false
