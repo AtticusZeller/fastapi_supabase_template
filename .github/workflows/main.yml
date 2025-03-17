@@ -44,7 +44,7 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
   SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-  SONAR_HOST_URL: ${{ https://sonarcloud.io }}
+  SONAR_HOST_URL: https://sonarcloud.io
 
   # Test Configuration
   PYTEST_ADDOPTS: "--color=yes"
