@@ -194,7 +194,9 @@ jobs:
 
       # SonarCloud Analysis
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v4.1.0
+        env:
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
       # Upload coverage reports to Codecov
       - name: Upload coverage to Codecov
