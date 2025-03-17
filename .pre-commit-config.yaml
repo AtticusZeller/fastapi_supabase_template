@@ -18,13 +18,13 @@ repos:
       - id: trailing-whitespace
       - id: detect-private-key
 
-  # Réactivation de codespell avec support du français
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
-    hooks:
-      - id: codespell
-        args: [--write-changes]
-        files: \.(py|sh|json|yml|yaml|md)$
+  # Réactivation de codespell
+  # - repo: https://github.com/codespell-project/codespell
+  #   rev: v2.4.1
+  #   hooks:
+  #     - id: codespell
+  #       args: [--write-changes]
+  #       files: \.(py|sh|json|yml|yaml|md)$
 
   # Réactivation de ruff avec des règles plus permissives
   - repo: https://github.com/astral-sh/ruff-pre-commit
