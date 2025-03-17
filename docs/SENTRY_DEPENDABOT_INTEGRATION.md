@@ -1,6 +1,6 @@
 # Intégration Sentry et Dependabot
 
-Ce document décrit l'intégration de Sentry pour la surveillance des erreurs et de Dependabot pour la gestion automatisée des dépendances dans le projet Insperio Labs.
+Ce document décrit l'intégration de Sentry pour la surveillance des erreurs et de Dependabot pour la gestion automatisée des dépendances dans le project Insperio Labs.
 
 ## Sentry
 
@@ -9,7 +9,7 @@ Ce document décrit l'intégration de Sentry pour la surveillance des erreurs et
 Sentry a été intégré pour fournir:
 - Surveillance des erreurs en temps réel
 - Alertes automatisées en cas d'exceptions
-- Traçage des performances 
+- Traçage des performances
 - Profilage des opérations
 - Association des releases avec les déploiements
 
@@ -21,14 +21,14 @@ Les variables suivantes doivent être configurées:
 
 ```env
 # Sentry
-SENTRY_DSN=https://votre-clé@sentry.io/projet
+SENTRY_DSN=https://votre-clé@sentry.io/project
 SENTRY_ENVIRONMENT=production|staging|development
 SENTRY_TRACES_SAMPLE_RATE=0.1
 SENTRY_PROFILES_SAMPLE_RATE=0.1
 ```
 
-- `SENTRY_DSN`: URL fournie par Sentry pour votre projet
-- `SENTRY_ENVIRONMENT`: Environnement actuel (production, staging, development)
+- `SENTRY_DSN`: URL fournie par Sentry pour votre project
+- `SENTRY_ENVIRONMENT`: Environment actuel (production, staging, development)
 - `SENTRY_TRACES_SAMPLE_RATE`: Taux d'échantillonnage pour le traçage des performances (0.0 à 1.0)
 - `SENTRY_PROFILES_SAMPLE_RATE`: Taux d'échantillonnage pour le profilage (0.0 à 1.0)
 
@@ -37,7 +37,7 @@ SENTRY_PROFILES_SAMPLE_RATE=0.1
 Un workflow Sentry a été configuré pour:
 1. Créer automatiquement des releases dans Sentry à chaque push sur main/develop ou tag
 2. Lier les commits à la release pour le suivi des corrections
-3. Définir l'environnement approprié en fonction de la branche/tag
+3. Définir l'environnement approprié en function de la branche/tag
 
 #### Secrets GitHub requis
 
@@ -45,7 +45,7 @@ Les secrets suivants doivent être configurés dans les paramètres GitHub du d�
 
 - `SENTRY_AUTH_TOKEN`: Token d'authentification pour l'API Sentry
 - `SENTRY_ORG`: Nom de l'organisation Sentry
-- `SENTRY_PROJECT`: Nom du projet Sentry
+- `SENTRY_PROJECT`: Nom du project Sentry
 
 ### Test de l'intégration
 

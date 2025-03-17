@@ -1,6 +1,6 @@
 # Gestion des Secrets
 
-Ce document explique comment gérer les secrets dans le projet, notamment pour les tests en CI/CD.
+Ce document explique comment gérer les secrets dans le project, notamment pour les tests en CI/CD.
 
 ## Principes généraux
 
@@ -12,7 +12,7 @@ Ce document explique comment gérer les secrets dans le projet, notamment pour l
 
 ### Fichier `.env.test`
 
-Créez un fichier `.env.test` à la racine du projet avec les variables suivantes :
+Créez un fichier `.env.test` à la racine du project avec les variables suivantes :
 
 ```
 SUPABASE_URL=...
@@ -93,10 +93,10 @@ Les secrets sont utilisés dans le workflow CI pour créer un fichier `.env.test
 - L'option `::add-mask::` est utilisée pour masquer les contenus sensibles.
 - Les forked PR n'ont pas accès aux secrets (protection par défaut de GitHub).
 
-## Création d'un environnement de test isolé
+## Création d'un environment de test isolé
 
-Pour les tests CI, il est recommandé de créer un environnement Supabase et une base de données PostgreSQL isolés pour éviter toute contamination des données de production.
+Pour les tests CI, il est recommandé de créer un environment Supabase et une base de données PostgreSQL isolés pour éviter toute contamination des données de production.
 
-1. Créez un projet Supabase dédié aux tests
+1. Créez un project Supabase dédié aux tests
 2. Configurez une base de données PostgreSQL temporaire
 3. Utilisez ces identifiants dans vos secrets GitHub avec le suffixe `_TEST`

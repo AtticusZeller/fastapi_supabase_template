@@ -2,7 +2,7 @@
 """
 Script pour installer et configurer Sentry dans l'application FastAPI.
 
-Ce script doit être exécuté après l'installation des dépendances du projet.
+Ce script doit être exécuté après l'installation des dépendances du project.
 Il vérifie que sentry-sdk est installé et aide à la configuration initiale.
 """
 
@@ -14,6 +14,7 @@ def check_sentry_installed():
     """Vérifie si sentry-sdk est installé."""
     try:
         import sentry_sdk
+
         print(f"✅ sentry-sdk est installé (version {sentry_sdk.__version__})")
         return True
     except ImportError:
@@ -27,6 +28,7 @@ def install_sentry():
     os.system(f"{sys.executable} -m pip install sentry-sdk")
     try:
         import sentry_sdk
+
         print(f"✅ sentry-sdk installé avec succès (version {sentry_sdk.__version__})")
         return True
     except ImportError:
@@ -70,7 +72,7 @@ SENTRY_RELEASE=local-dev
     env_templates = [".env.example", ".env.test"]
     for template in env_templates:
         if os.path.exists(template):
-            with open(template, "r") as f:
+            with open(template) as f:
                 content = f.read()
 
             if "SENTRY_DSN" not in content:
@@ -84,27 +86,34 @@ SENTRY_RELEASE=local-dev
 
 
 def main():
-    """Fonction principale."""
-    print("🔍 Vérification de l'installation de Sentry..."
-          "\n--------------------------------------------")
+    """Function principale."""
+    print(
+        "🔍 Vérification de l'installation de Sentry..."
+        "\n--------------------------------------------"
+    )
 
     if not check_sentry_installed():
         if not install_sentry():
-            print("⚠️ Impossible d'installer sentry-sdk. Veuillez l'installer manuellement.")
+            print(
+                "⚠️ Impossible d'installer sentry-sdk. Veuillez l'installer manuellement."
+            )
             return
 
-    print("\n📋 Configuration de Sentry dans votre application FastAPI"
-          "\n--------------------------------------------")
+    print(
+        "\n📋 Configuration de Sentry dans votre application FastAPI"
+        "\n--------------------------------------------"
+    )
     print("Ajoutez ce code à votre application FastAPI:")
     print("")
     print(generate_config_snippet())
 
-    print("\n📝 Mise à jour des modèles .env"
-          "\n--------------------------------------------")
+    print(
+        "\n📝 Mise à jour des modèles .env"
+        "\n--------------------------------------------"
+    )
     update_env_templates()
 
-    print("\n🚀 Prochaines étapes:"
-          "\n--------------------------------------------")
+    print("\n🚀 Prochaines étapes:\n--------------------------------------------")
     print("1. Obtenez un DSN Sentry depuis votre compte Sentry")
     print("2. Ajoutez-le à votre fichier .env")
     print("3. Configurez les secrets GitHub pour l'intégration CI/CD:")

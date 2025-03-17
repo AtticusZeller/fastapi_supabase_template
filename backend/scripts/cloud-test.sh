@@ -3,12 +3,12 @@ set -e
 
 # Ce script lance les tests en utilisant l'instance Supabase cloud
 
-# Chemin du fichier .env.test (à la racine du projet)
+# Chemin du fichier .env.test (à la racine du project)
 ENV_TEST_FILE="../.env.test"
 
 # Vérifier si le fichier .env.test existe
 if [ ! -f "$ENV_TEST_FILE" ]; then
-    echo "Erreur: Le fichier .env.test n'existe pas à la racine du projet."
+    echo "Erreur: Le fichier .env.test n'existe pas à la racine du project."
     echo "Veuillez créer ce fichier avec les variables nécessaires pour les tests."
     exit 1
 fi
@@ -20,7 +20,7 @@ if ! grep -q "SUPABASE_SERVICE_KEY" "$ENV_TEST_FILE"; then
     exit 1
 fi
 
-echo "Utilisation du fichier .env.test existant pour les tests."
+echo "Utilisation du fichier .env.test existent pour les tests."
 
 # Exécuter les tests
 echo "Exécution des tests avec vos paramètres..."

@@ -1,5 +1,5 @@
-"""Script utilitaire pour vérifier la connexion à Supabase et les prérequis pour les tests.
-Exécutez-le avant les tests pour diagnostiquer les problèmes de connexion.
+"""Script utilitaire pour vérifier la connection à Supabase et les prérequis pour les tests.
+Exécutez-le avant les tests pour diagnostiquer les problèmes de connection.
 """
 
 import os
@@ -45,12 +45,12 @@ def main():
 
     print("✅ Toutes les variables d'environnement requises sont présentes")
 
-    # Tester la connexion à Supabase
+    # Tester la connection à Supabase
     url = os.getenv("SUPABASE_URL")
     key = os.getenv("SUPABASE_KEY")
     service_key = os.getenv("SUPABASE_SERVICE_KEY")
 
-    print(f"🔍 Test de connexion à Supabase: {url}")
+    print(f"🔍 Test de connection à Supabase: {url}")
 
     # Test avec la clé anon
     try:
@@ -60,15 +60,15 @@ def main():
         )
         if response.status_code in (200, 204):
             print(
-                f"✅ Connexion réussie avec la clé anon (status: {response.status_code})"
+                f"✅ Connection réussie avec la clé anon (status: {response.status_code})"
             )
         else:
             print(
-                f"❌ Échec de connexion avec la clé anon (status: {response.status_code})"
+                f"❌ Échec de connection avec la clé anon (status: {response.status_code})"
             )
             print(f"Réponse: {response.text}")
     except Exception as e:
-        print(f"❌ Erreur lors de la connexion avec la clé anon: {e}")
+        print(f"❌ Erreur lors de la connection avec la clé anon: {e}")
 
     # Test avec la clé service
     try:
@@ -78,15 +78,15 @@ def main():
         )
         if response.status_code in (200, 204):
             print(
-                f"✅ Connexion réussie avec la clé service (status: {response.status_code})"
+                f"✅ Connection réussie avec la clé service (status: {response.status_code})"
             )
         else:
             print(
-                f"❌ Échec de connexion avec la clé service (status: {response.status_code})"
+                f"❌ Échec de connection avec la clé service (status: {response.status_code})"
             )
             print(f"Réponse: {response.text}")
     except Exception as e:
-        print(f"❌ Erreur lors de la connexion avec la clé service: {e}")
+        print(f"❌ Erreur lors de la connection avec la clé service: {e}")
 
     # Vérifier l'existence du bucket de stockage
     try:

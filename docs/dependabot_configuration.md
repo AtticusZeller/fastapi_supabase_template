@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Ce projet utilise Dependabot pour automatiser la gestion des dépendances et maintenir nos packages à jour, tout en privilégiant la sécurité. Cette documentation explique notre configuration et les bonnes pratiques associées.
+Ce project utilise Dependabot pour automatiser la gestion des dépendances et maintenir nos packages à jour, tout en privilégiant la sécurité. Cette documentation explique notre configuration et les bonnes pratiques associées.
 
 ## Configuration
 
@@ -23,7 +23,7 @@ Pour réduire le bruit et la charge de travail liée aux revues, nous avons conf
 - **GitHub Actions** : Toutes les mises à jour d'actions sont regroupées
 - **Python** : Séparation entre dépendances de production et de développement
   - Regroupement des mises à jour mineures et de patchs
-  - Traitement individuel des mises à jour majeures qui peuvent introduire des incompatibilités
+  - Traitement individual des mises à jour majeures qui peuvent introduire des incompatibilités
 - **Docker** : Toutes les mises à jour Docker sont regroupées
 
 ### Automatisation des Pull Requests
@@ -31,7 +31,7 @@ Pour réduire le bruit et la charge de travail liée aux revues, nous avons conf
 Nous avons mis en place un workflow d'automatisation pour Dependabot :
 
 - **Approbation automatique** pour les mises à jour mineures et de patchs
-- **Merge automatique** pour les mises à jour de GitHub Actions 
+- **Merge automatique** pour les mises à jour de GitHub Actions
 - **Revue manuelle requise** pour les mises à jour majeures
 
 ## Bonnes pratiques
@@ -40,14 +40,14 @@ Nous avons mis en place un workflow d'automatisation pour Dependabot :
 
 1. **Mises à jour mineures/patchs** : Généralement sûres, elles sont approuvées et fusionnées automatiquement
 2. **Mises à jour majeures** : Examiner attentivement les changements et les notes de version avant de fusionner
-3. **Vulnérabilités de sécurité** : Priorité absolue, à traiter dès que possible
+3. **Vulnérabilités de sécurité** : Priorité absolute, à traiter dès que possible
 
-### Résolution des conflits
+### Résolution des conflicts
 
-En cas de conflits dans les PRs Dependabot :
+En cas de conflicts dans les PRs Dependabot :
 
 1. Vérifier les changements dans chaque fichier concerné
-2. Résoudre les conflits manuellement en fonction des besoins du projet
+2. Résoudre les conflicts manuellement en function des besoins du project
 3. Exécuter la suite de tests complète avant d'approuver
 
 ### Ignorer certaines dépendances
@@ -76,7 +76,7 @@ Si le nombre de PRs Dependabot devient difficile à gérer :
 2. Réduisez la valeur de `open-pull-requests-limit`
 3. Envisagez de regrouper davantage de mises à jour ensemble
 
-## Ressources additionnelles
+## Resources additionnelles
 
 - [Documentation Dependabot](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates)
 - [Configuration avancée de Dependabot](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file)
