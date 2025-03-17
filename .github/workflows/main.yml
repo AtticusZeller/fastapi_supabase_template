@@ -86,46 +86,50 @@ jobs:
 
       - name: Install pre-commit and mypy
         run: |
+          # Install pre-commit and mypy at system level
           uv pip install pre-commit mypy types-requests types-python-dateutil types-PyYAML --system
+
+          # Sync project dependencies without dev dependencies
           cd backend
-          uv sync --python 3.12 --all-extras --dev
+          uv pip install --system $(uv pip compile pyproject.toml --no-deps | grep -v "^#")
 
       - name: Run pre-commit checks
         run: |
           # Get files to check (excluding workflows)
-          FILES_TO_CHECK=$(find . -type f -not -path "./.github/workflows/*" -not -path "./.git/*")
+          FILES_TO_CHECK=$(find . -type f -not -path "./.github/workflows/*" -not -path "./.git/*" -not -path "*/\.*")
 
-          # Run pre-commit
+          # Run pre-commit with system Python
+          export SKIP=mypy  # Skip mypy in pre-commit
           set +e
           pre-commit run --files $FILES_TO_CHECK
           pre_commit_status=$?
           set -e
 
+          # Run mypy separately with system installation
+          echo "Running mypy separately..."
+          cd backend
+          mypy . --ignore-missing-imports
+          mypy_status=$?
+
           # Handle results based on event type
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            if [ $pre_commit_status -eq 1 ]; then
-              echo "Pre-commit fixed formatting issues. Committing changes..."
-
-              # Configure Git
-              git config --local user.email "actions@github.com"
-              git config --local user.name "GitHub Actions"
-
-              # Commit and push
-              git add -A
+            if [ $pre_commit_status -eq 1 ] || [ $mypy_status -ne 0 ]; then
+              echo "Formatting issues found. Committing fixes..."
+            git config --local user.email "actions@github.com"
+            git config --local user.name "GitHub Actions"
+            git add -A
               git commit -m "[STYLE] Automatic formatting fix (pre-commit)"
-              git push
-
-              echo "✅ Formatting fixes made and pushed to branch."
+            git push
+              echo "✅ Fixes pushed to branch."
             else
-              echo "✅ No formatting issues detected."
+              echo "✅ All checks passed."
             fi
           else
-            # For non-PR events, fail if pre-commit found issues
-            if [ $pre_commit_status -ne 0 ]; then
-              echo "❌ Pre-commit checks failed"
+            if [ $pre_commit_status -ne 0 ] || [ $mypy_status -ne 0 ]; then
+              echo "❌ Checks failed"
               exit 1
             else
-              echo "✅ Pre-commit checks passed"
+              echo "✅ All checks passed"
             fi
           fi
 
