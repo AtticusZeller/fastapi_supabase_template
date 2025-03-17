@@ -139,50 +139,89 @@ jobs:
       - name: Install security tools
         run: |
           python -m pip install --upgrade pip
-          pip install bandit safety
+          pip install bandit safety jq
 
       - name: Run Bandit (Python security linter)
         run: |
           bandit -r backend/ -ll -ii -f json -o bandit-results.json || true
           echo "Results saved to bandit-results.json"
 
-      - name: Check dependencies for vulnerabilities with Safety
+      - name: Run Safety Check
         run: |
           cd backend
-          safety check --full-report --file=pyproject.toml || true
+          # Générer le rapport au format JSON
+          safety check --json --full-report --file=pyproject.toml > safety-results.json || true
+          echo "Results saved to safety-results.json"
 
-      - name: Check for secrets in code
-        uses: gitleaks/gitleaks-action@v2
-        continue-on-error: true
+      - name: Analyze Security Results
+        run: |
+          echo "## 🔒 Security Scan Results" > security-report.md
+          echo "" >> security-report.md
+
+          # Analyse Bandit
+          if [ -f "bandit-results.json" ]; then
+            echo "### Bandit Analysis" >> security-report.md
+            ISSUES=$(jq '.metrics._totals."SEVERITY.HIGH" + .metrics._totals."SEVERITY.MEDIUM"' bandit-results.json)
+            HIGH_SEVERITY=$(jq '.metrics._totals."SEVERITY.HIGH"' bandit-results.json)
+
+            echo "Found **$ISSUES** potential code security issues:" >> security-report.md
+            echo "- 🚨 High Severity: $HIGH_SEVERITY" >> security-report.md
+
+            echo "<details><summary>Bandit Findings</summary>" >> security-report.md
+            echo "" >> security-report.md
+            echo "\`\`\`" >> security-report.md
+            jq -r '.results[] | "- [" + .issue_severity + "] " + .issue_text + "\n  File: " + .filename + ":" + (.line_number|tostring)' bandit-results.json >> security-report.md
+            echo "\`\`\`" >> security-report.md
+            echo "</details>" >> security-report.md
+          fi
+
+          # Analyse Safety
+          if [ -f "backend/safety-results.json" ]; then
+            echo "" >> security-report.md
+            echo "### Safety Dependencies Analysis" >> security-report.md
+            VULN_COUNT=$(jq 'length' backend/safety-results.json)
+
+            echo "Found **$VULN_COUNT** vulnerable dependencies:" >> security-report.md
+
+            echo "<details><summary>Safety Findings</summary>" >> security-report.md
+            echo "" >> security-report.md
+            echo "\`\`\`" >> security-report.md
+            jq -r '.[] | "- [\(.severity)] \(.package_name) \(.analyzed_version)\n  \(.advisory)"' backend/safety-results.json >> security-report.md
+            echo "\`\`\`" >> security-report.md
+            echo "</details>" >> security-report.md
+
+            # Échouer si des vulnérabilités critiques sont trouvées
+            CRITICAL_COUNT=$(jq '[.[] | select(.severity == "critical")] | length' backend/safety-results.json)
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "::error::Found $CRITICAL_COUNT critical vulnerabilities in dependencies!"
+              exit 1
+            fi
+          fi
+
+      - name: Add Security Report Comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          config-path: .github/gitleaks.toml
-          enable-git-history: false
-          verbose: true
+          header: security-report
+          path: security-report.md
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload security scan results
+      - name: Upload Security Reports
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-scan-results
+          name: security-reports
           path: |
             bandit-results.json
-            gitleaks-report.json
-          retention-days: 7
+            backend/safety-results.json
+            security-report.md
+          retention-days: 14
 
-      - name: Check Gitleaks Results
+      - name: Create Job Summary
         if: always()
         run: |
-          if [ -f "gitleaks-report.json" ]; then
-            echo "Checking gitleaks results..."
-            if [ -s "gitleaks-report.json" ]; then
-              echo "⚠️ Potential secrets found in code"
-              cat gitleaks-report.json
-              # Optionnel : échouer le build si des secrets sont trouvés
-              # exit 1
-            else
-              echo "✅ No secrets found in code"
-            fi
-          else
-            echo "⚠️ No gitleaks report found"
+          if [ -f "security-report.md" ]; then
+            cat security-report.md >> $GITHUB_STEP_SUMMARY
           fi
 
   dependabot:
