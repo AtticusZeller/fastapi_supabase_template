@@ -77,3 +77,4 @@ node_modules/
 
 # Pytest cache
 .pytest_cache/
+.env.test
