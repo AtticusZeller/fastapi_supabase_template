@@ -1,15 +1,32 @@
-# French words that should be ignored by codespell
-classe
-classes
-explicite
-mis
-branche
-groupe
-groupes
-Branche
-Processus
-processus
-reste
-Mis
-Classe
-groupes
+# Mots français légitimes qui seraient sinon marqués comme fautes
+préfixe
+développement
+définir
+débloquer
+référence
+réactivation
+modèle
+même
+amélioration
+règles
+sécurité
+démarrage
+dépendances
+déploiement
+métadonnées
+résultat
+stratégie
+
+# Termes techniques légitimes
+supabase
+fastapi
+sqlmodel
+sqlalchemy
+uvicorn
+asgi
+postgres
+pydantic
+websockets
+devcontainer
+hadolint
+codespell
