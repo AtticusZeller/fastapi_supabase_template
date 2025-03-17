@@ -58,6 +58,17 @@ repos:
   #   hooks:
   #     - id: uv-lock
 
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0  # Utilisez la même version que dans vos dépendances
+    hooks:
+    - id: mypy
+      additional_dependencies:
+      - types-requests
+      - types-python-dateutil
+      - types-PyYAML
+    exclude: ^alembic/
+    args: [--ignore-missing-imports, --disallow-untyped-defs]
+
 ci:
   autofix_commit_msg: 🎨 [pre-commit.ci] Auto format from pre-commit.com hooks
   # Settings for the https://pre-commit.ci/ continuous integration service

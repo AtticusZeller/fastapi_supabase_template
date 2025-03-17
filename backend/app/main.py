@@ -2,10 +2,13 @@ import logging
 from collections.abc import AsyncGenerator
 from typing import Any
 
+import sentry_sdk
 import uvicorn
 from fastapi import FastAPI
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from uvicorn.config import LOGGING_CONFIG
 
 from app.api.main import api_router
@@ -13,6 +16,28 @@ from app.core.config import settings
 from app.utils import custom_generate_unique_id
 
 logger = logging.getLogger("uvicorn")
+
+
+def configure_sentry() -> None:
+    """Configure Sentry SDK if DSN is provided"""
+    if settings.SENTRY_DSN:
+        env = settings.SENTRY_ENVIRONMENT or settings.ENVIRONMENT
+        
+        # Initialize Sentry
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            environment=env,
+            traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+            profiles_sample_rate=settings.SENTRY_PROFILES_SAMPLE_RATE,
+            integrations=[
+                FastApiIntegration(transaction_style="endpoint"),
+                SqlalchemyIntegration(),
+            ],
+            release=f"{settings.PROJECT_NAME}@0.4.1",  # A remplacer par une version dynamique
+        )
+        logger.info(f"Sentry initialized in {env} environment")
+    else:
+        logger.info("Sentry DSN not provided, monitoring disabled")
 
 
 @asynccontextmanager
@@ -24,6 +49,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa ARG001
     finally:
         logger.info("lifespan exit")
 
+
+# Configure Sentry first
+configure_sentry()
 
 # init FastAPI with lifespan
 app = FastAPI(
@@ -52,6 +80,14 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 @app.get("/", tags=["root"])
 async def read_root() -> dict[str, str]:
     return {"Hello": "World"}
+
+
+# Route de test pour Sentry
+@app.get("/debug-sentry", tags=["debug"])
+async def trigger_error() -> None:
+    """Route pour tester l'intégration de Sentry"""
+    division_by_zero = 1 / 0
+    return division_by_zero  # noqa: F841
 
 
 # Logger

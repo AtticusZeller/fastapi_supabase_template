@@ -16,7 +16,8 @@ dependencies = [
     "psycopg>=3.2.4",
     "python-dotenv>=1.0.0",
     "PyGithub>=1.58.0",
-    "pre-commit>=3.8.0"
+    "pre-commit>=3.8.0",
+    "sentry-sdk[fastapi]>=1.42.0",
 ]
 
 [dependency-groups]
@@ -49,6 +50,21 @@ build-backend = "hatchling.build"
 [tool.mypy]
 strict = true
 exclude = ["venv", ".venv", "alembic"]
+disallow_any_explicit = false  # Pour autoriser Any explicite mais pas implicite
+disallow_untyped_defs = true   # Exige le typage des fonctions
+warn_return_any = true         # Avertit si une fonction typée retourne Any
+warn_unused_ignores = true     # Avertit des ignores superflus
+
+# Configurations pour les bibliothèques externes
+[[tool.mypy.overrides]]
+module = ["alembic.*", "supabase.*"]
+ignore_missing_imports = true
+
+# Pour les tests, on peut être moins strict
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
 
 [tool.pytest.ini_options]
 # Set additional command line options for pytest
@@ -76,7 +92,7 @@ exclude_lines = [
     'if typing.TYPE_CHECKING=',
     '@overload',
     '@typing.overload',
-    '\(Protocol\)=$',
+    '\\(Protocol\\)=$',
     'typing.assert_never',
     'assert_never',
     'if __name__ == "__main__":',

@@ -4,13 +4,80 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
-      prefix: ⬆
+      prefix: "⬆️ [CI]"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github_actions"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 10
+    pull-request-branch-name:
+      separator: "-"
+    # Limiter aux mises à jour de sécurité et de compatibilité pendant les jours de semaine
+    # pour réduire le bruit dans le workflow de développement
+    timezone: "Europe/Paris"
+    day: "monday"
+    time: "09:00"
+  
   # Python
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
-      prefix: ⬆
+      prefix: "⬆️ [DEPS]"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+    # Grouper les mises à jour mineures et de patch pour réduire le nombre de PRs
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    # Mises à jour critiques de sécurité prioritaires
+    security-updates-only: false
+    # Ignorer certaines dépendances qui pourraient causer des problèmes
+    # Décommenter et ajouter les packages à éviter si nécessaire
+    # ignore:
+    #  - dependency-name: "problematic-package"
+    pull-request-branch-name:
+      separator: "-"
+    open-pull-requests-limit: 15
+    timezone: "Europe/Paris"
+    day: "monday"
+    time: "09:00"
+  
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "⬆️ [DOCKER]"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+    groups:
+      docker-updates:
+        patterns:
+          - "*"
+    pull-request-branch-name:
+      separator: "-"
+    open-pull-requests-limit: 5
+    timezone: "Europe/Paris"
+    day: "monday"
+    time: "09:00"

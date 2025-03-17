@@ -63,6 +63,12 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
 
+    ## Sentry
+    SENTRY_DSN: str = ""
+    SENTRY_ENVIRONMENT: str = ""
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1
+    SENTRY_PROFILES_SAMPLE_RATE: float = 0.1
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
