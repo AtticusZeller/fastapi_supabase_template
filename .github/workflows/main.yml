@@ -44,6 +44,7 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
   SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+  SONAR_HOST_URL: ${{ https://sonarcloud.io }}
 
   # Test Configuration
   PYTEST_ADDOPTS: "--color=yes"
@@ -195,8 +196,6 @@ jobs:
       # SonarCloud Analysis
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5.0.0
-        env:
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
       # Upload coverage reports to Codecov
       - name: Upload coverage to Codecov
