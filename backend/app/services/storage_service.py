@@ -21,7 +21,7 @@ class StorageService:
             # Récupérer le type MIME depuis les headers
             content_type = file.content_type or "application/octet-stream"
 
-            # Utiliser BytesIO pour créer un objet file-like à partir des bytes
+            # Utiliser BytesIO pour créer un object file-like à partir des bytes
             file_obj = BytesIO(file_bytes)
 
             # Upload avec l'objet file-like qui a une méthode seek()

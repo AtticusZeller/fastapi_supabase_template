@@ -35,10 +35,10 @@ class Profile(RLSModel, table=True):
         return path
 
 
-# Exemple avec un bucket lié à un modèle Profile
+# Example avec un bucket lié à un modèle Profile
 class ProfilePicturesBucket(StorageBucket):
     name = "profile-pictures"
     public = True
     allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]
     max_file_size = 5 * 1024 * 1024  # 5MB
-    linked_model = Profile  # Lien
+    linked_model = Profile  # Line

@@ -7,23 +7,23 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=acout_fastapi_supabase_template&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=acout_fastapi_supabase_template)
 [![Codecov](https://codecov.io/gh/acout/fastapi_supabase_template/branch/main/graph/badge.svg)](https://codecov.io/gh/acout/fastapi_supabase_template)
 
-Un template de projet FastAPI intégrant Supabase pour l'authentification, la base de données et le stockage de fichiers.
+Un template de project FastAPI intégrant Supabase pour l'authentification, la base de données et le stockage de fichiers.
 
 ## Fonctionnalités
 
-- **Authentification** avec Supabase Auth
+- **Authentication** avec Supabase Auth
 - **Base de données** PostgreSQL via SQLModel et Supabase
 - **Row Level Security (RLS)** pour la protection des données
 - **Stockage de fichiers** avec Supabase Storage et policies RLS
 - **Upload de fichiers** avec métadonnées en base de données
 - **API RESTful** complète avec FastAPI
 - **Documentation automatique** avec Swagger UI
-- **Tests unitaires** complets
+- **Tests unitaires** completes
 - **Qualité de code** avec hooks pre-commit, linting et formattage automatique
 - **Analyse de code** continue avec SonarCloud
 - **Couverture de code** avec Codecov
 
-## Structure du projet
+## Structure du project
 
 ```
 ├── app                  # Application principale
@@ -36,11 +36,11 @@ Un template de projet FastAPI intégrant Supabase pour l'authentification, la ba
 │   └── utils            # Utilitaires
 ├── tests                # Tests unitaires et d'intégration
 ├── alembic              # Migrations de base de données
-├── docs                 # Documentation du projet et standards de code
+├── docs                 # Documentation du project et standards de code
 └── supabase             # Configuration Supabase
 ```
 
-## Environnement de développement
+## Environment de développement
 
 ### Prérequis
 
@@ -233,7 +233,7 @@ python -m pytest tests/
 cd backend
 # Lancer Supabase local
 supabase start
-# Test de connexion à la base de données et migration
+# Test de connection à la base de données et migration
 scripts/pre-start.sh
 # Tests unitaires
 scripts/test.sh
@@ -241,7 +241,7 @@ scripts/test.sh
 
 ### Tests avec Supabase Cloud
 
-Pour tester avec votre instance Supabase cloud, assurez-vous d'avoir configuré votre fichier `.env` avec les informations de connexion à votre Supabase cloud, puis exécutez :
+Pour tester avec votre instance Supabase cloud, assurez-vous d'avoir configuré votre fichier `.env` avec les information de connection à votre Supabase cloud, puis exécutez :
 
 ```bash
 cd backend
@@ -254,7 +254,7 @@ bash scripts/cloud-test.sh
 ### Avec Supabase local
 
 ```bash
-# À la racine du projet
+# À la racine du project
 supabase start
 
 # Dans le répertoire backend

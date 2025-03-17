@@ -1,6 +1,6 @@
 # Outils de Qualité de Code
 
-Ce document détaille les outils de qualité de code configurés dans ce projet, comment ils sont intégrés dans notre processus de développement, et comment les utiliser efficacement.
+Ce document détaille les outils de qualité de code configurés dans ce project, comment ils sont intégrés dans notre processus de développement, et comment les utiliser efficacement.
 
 ## SonarCloud
 
@@ -8,13 +8,13 @@ SonarCloud est un service d'analyse de code automatique en continu qui détecte 
 
 ### Configuration
 
-Le projet est configuré pour utiliser SonarCloud via le fichier `sonar-project.properties` à la racine du projet et le workflow GitHub Actions `.github/workflows/sonarcloud.yml`.
+Le project est configuré pour utiliser SonarCloud via le fichier `sonar-project.properties` à la racine du project et le workflow GitHub Actions `.github/workflows/sonarcloud.yml`.
 
 ### Métriques surveillées
 
-- **Qualité de code** : Identification des problèmes de code comme les bugs potentiels, les vulnérabilités et les "code smells"
+- **Qualité de code** : Identification des problèmes de code comme les bugs potentials, les vulnérabilités et les "code smells"
 - **Couverture de tests** : Pourcentage du code couvert par les tests automatiques
-- **Duplication de code** : Détection des blocs de code dupliqués
+- **Duplication de code** : Détection des blocks de code dupliqués
 - **Complexité** : Analyse de la complexité cyclomatique et cognitive du code
 - **Dette technique** : Estimation du temps nécessaire pour corriger tous les problèmes de code
 
@@ -22,23 +22,23 @@ Le projet est configuré pour utiliser SonarCloud via le fichier `sonar-project.
 
 Les résultats de l'analyse SonarCloud sont disponibles :
 
-1. Sur le [tableau de bord SonarCloud du projet](https://sonarcloud.io/project/overview?id=acout_fastapi_supabase_template)
+1. Sur le [tableau de bord SonarCloud du project](https://sonarcloud.io/project/overview?id=acout_fastapi_supabase_template)
 2. Directement dans les Pull Requests via les commentaires de SonarCloud
-3. Via les badges dans le README du projet
+3. Via les badges dans le README du project
 
 ### Configuration locale
 
-Pour configurer SonarCloud pour votre fork du projet :
+Pour configurer SonarCloud pour votre fork du project :
 
 1. Créez un compte sur [SonarCloud](https://sonarcloud.io/) et liez-le à votre compte GitHub
 2. Importez votre dépôt dans SonarCloud
 3. Générez un token d'accès dans SonarCloud
 4. Ajoutez ce token comme secret GitHub dans votre dépôt avec le nom `SONAR_TOKEN`
-5. Adaptez le fichier `sonar-project.properties` pour refléter vos informations d'organisation et de projet
+5. Adaptez le fichier `sonar-project.properties` pour refléter vos information d'organisation et de project
 
 ## Codecov
 
-Codecov est un outil qui permet de visualiser et d'analyser la couverture de code de votre projet.
+Codecov est un outil qui permet de visualiser et d'analyser la couverture de code de votre project.
 
 ### Configuration
 
@@ -91,7 +91,7 @@ Les seuils suivants sont établis pour maintenir la qualité du code :
 - **Duplication de code** : Maximum 5%
 - **Dette technique** : Maximum 5% du temps de développement
 
-Les Pull Requests qui ne respectent pas ces seuils seront signalées comme problématiques, mais la décision finale d'acceptation reste à la discrétion des mainteneurs du projet.
+Les Pull Requests qui ne respectent pas ces seuils seront signalées comme problématiques, mais la décision finale d'acceptation reste à la discrétion des mainteneurs du project.
 
 ## Résolution des problèmes communs
 
@@ -113,7 +113,7 @@ Les Pull Requests qui ne respectent pas ces seuils seront signalées comme probl
 2. Corrigez les problèmes dans votre code
 3. Relancez l'analyse pour vérifier que les problèmes sont résolus
 
-## Ressources utiles
+## Resources utiles
 
 - [Documentation SonarCloud](https://docs.sonarcloud.io/)
 - [Documentation Codecov](https://docs.codecov.io/)

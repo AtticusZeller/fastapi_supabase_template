@@ -23,7 +23,7 @@ updates:
     timezone: "Europe/Paris"
     day: "monday"
     time: "09:00"
-  
+
   # Python
   - package-ecosystem: "pip"
     directory: "/"
@@ -59,7 +59,7 @@ updates:
     timezone: "Europe/Paris"
     day: "monday"
     time: "09:00"
-  
+
   # Docker
   - package-ecosystem: "docker"
     directory: "/"

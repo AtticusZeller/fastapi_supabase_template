@@ -3,7 +3,7 @@
 ## Table des matières
 
 - [Introduction](#introduction)
-- [Environnement de développement](#environnement-de-développement)
+- [Environment de développement](#environnement-de-développement)
 - [Workflow de développement](#workflow-de-développement)
 - [Standards de codage](#standards-de-codage)
 - [Tests](#tests)
@@ -13,9 +13,9 @@
 
 ## Introduction
 
-Bienvenue dans le guide de contribution d'Insperio Labs! Ce document a pour but de fournir toutes les directives nécessaires pour contribuer efficacement à ce projet.
+Bienvenue dans le guide de contribution d'Insperio Labs! Ce document a pour but de fournir toutes les directives nécessaires pour contribuer efficacement à ce project.
 
-## Environnement de développement
+## Environment de développement
 
 ### Prérequis
 
@@ -84,32 +84,32 @@ Nous suivons les standards PEP 8 avec quelques modifications, appliqués automat
 - **Lisibilité**: Le code doit être facile à lire et à comprendre
 - **Simplicité**: Préférez le code simple et direct aux solutions complexes
 - **Commentaires**: Commentez le code lorsque nécessaire, mais privilégiez du code auto-explicatif
-- **Docstrings**: Utilisez des docstrings pour les modules, classes, et fonctions publiques
+- **Docstrings**: Utilisez des docstrings pour les modules, classes, et functions publiques
 
 ### Style de code
 
-- **Indentation**: 4 espaces
+- **Indentation**: 4 escapes
 - **Longueur de ligne**: Limitée à 88 caractères (standard Black)
 - **Nommage**:
   - Modules: `snake_case`
   - Classes: `PascalCase`
-  - Fonctions/méthodes: `snake_case`
+  - Functions/méthodes: `snake_case`
   - Variables: `snake_case`
   - Constantes: `UPPER_SNAKE_CASE`
-- **Type hints**: Utilisez des annotations de type pour toutes les fonctions et méthodes
+- **Type hints**: Utilisez des annotations de type pour toutes les functions et méthodes
 
 ### Structure des imports
 
 Les imports doivent être groupés dans l'ordre suivant, avec une ligne vide entre chaque groupe:
 1. Imports de la bibliothèque standard
 2. Imports de bibliothèques tierces
-3. Imports depuis d'autres modules du projet
+3. Imports depuis d'autres modules du project
 
 ## Tests
 
 Chaque fonctionnalité doit être accompagnée de tests:
 
-- **Tests unitaires**: Pour tester des fonctions/classes individuelles
+- **Tests unitaires**: Pour tester des functions/classes individuelles
 - **Tests d'intégration**: Pour tester l'interaction entre différents composants
 - **Tests API**: Pour tester les endpoints FastAPI
 
