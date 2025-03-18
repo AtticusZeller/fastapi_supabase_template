@@ -30,7 +30,7 @@ class FileMetadataUpdate(SQLModel):
     description: str | None = Field(default=None, max_length=255)
 
 
-class FileMetadata(RLSModel, FileMetadataBase, table=True):
+class FileMetadata(RLSModel, FileMetadataBase):
     """Modèle de table pour les métadonnées de fichier"""
 
     item_id: uuid.UUID | None = Field(default=None, foreign_key="item.id")
