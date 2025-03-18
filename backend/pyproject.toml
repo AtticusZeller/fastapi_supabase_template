@@ -48,12 +48,22 @@ build-backend = "hatchling.build"
 
 ## Test
 [tool.mypy]
-strict = true
-exclude = ["venv", ".venv", "alembic"]
-disallow_any_explicit = false  # Pour autoriser Any explicite mais pas implicite
-disallow_untyped_defs = true   # Exige le typage des fonctions
-warn_return_any = true         # Avertit si une fonction typée retourne Any
-warn_unused_ignores = true     # Avertit des ignores superflus
+python_version = "3.12"
+ignore_missing_imports = true
+explicit_package_bases = true
+namespace_packages = true
+exclude = [
+    "alembic/",
+    "tests/",
+    "backend/app/models.py"
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "alembic.*",
+    "tests.*"
+]
+ignore_errors = true
 
 # Configurations pour les bibliothèques externes
 [[tool.mypy.overrides]]

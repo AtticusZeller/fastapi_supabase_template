@@ -1,6 +1,9 @@
 # Ref: https://github.com/fastapi/full-stack-fastapi-template/blob/master/backend/Dockerfile
 FROM mcr.microsoft.com/devcontainers/python:1-3.12-bullseye
 
+# Set shell options
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Print logs immediately
 # Ref: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONUNBUFFERED
 ENV PYTHONUNBUFFERED=1
@@ -23,13 +26,21 @@ RUN apt-get update \
     git \
     curl \
     ca-certificates \
-    wget \
     gpg \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg;
-RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null;
-RUN apt update && apt install -y gh;
+# Install GitHub CLI
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+    | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y gh --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Hadolint
+RUN curl -fsSL -o /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 \
+    && chmod +x /usr/local/bin/hadolint
 
 # Set working directory
 WORKDIR /app
@@ -71,8 +82,18 @@ RUN --mount=type=cache,target=$UV_CACHE_DIR \
     echo "=== Site packages contents ===" && \
     ls -la /usr/local/lib/python3.12/site-packages/
 
-RUN if [ "$BUILD_ENV" = "test" -o "$BUILD_ENV" = "dev" ]; then \
-    uv pip install --system -e ".[test]"; \
+RUN if [ "$BUILD_ENV" = "test" ] || [ "$BUILD_ENV" = "dev" ]; then \
+    uv pip install --system -e ".[test]" && \
+    uv pip install --system \
+    mypy \
+    pylint \
+    flake8 \
+    black \
+    isort \
+    types-requests \
+    types-python-dateutil \
+    types-PyYAML \
+    ; \
     fi
 
 # Verify installations with more debug
@@ -80,14 +101,22 @@ RUN set -x && \
     python -c "import sqlmodel; print(f'SQLModel version: {sqlmodel.__version__}')" && \
     python -c "import alembic; print('Alembic installed successfully')"
 
-# Install Supabase CLI
-RUN wget -O supabase.deb https://github.com/supabase/cli/releases/download/v1.145.4/supabase_1.145.4_linux_amd64.deb \
+# Install Supabase CLI using curl instead of wget
+RUN curl -fsSL -o supabase.deb --progress-bar \
+    https://github.com/supabase/cli/releases/download/v1.145.4/supabase_1.145.4_linux_amd64.deb \
     && dpkg -i supabase.deb \
     && rm supabase.deb
 
 # Set ownership if in dev mode
 RUN if [ -n "$USERNAME" ] && [ "$BUILD_ENV" = "dev" ]; then \
     chown -R $USERNAME:$USERNAME /app; \
+    fi
+
+# Si BUILD_ENV est dev, configurer GPG
+RUN if [ "$BUILD_ENV" = "dev" ]; then \
+    mkdir -p /home/$USERNAME/.gnupg && \
+    chown -R $USERNAME:$USERNAME /home/$USERNAME/.gnupg && \
+    chmod 700 /home/$USERNAME/.gnupg; \
     fi
 
 # Switch to non-root user if specified

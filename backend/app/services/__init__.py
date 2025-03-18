@@ -4,7 +4,7 @@ from app.models import STORAGE_BUCKETS
 from app.services.storage import StorageService
 
 # Singleton pour le service de stockage
-_storage_service = None
+_storage_service: StorageService | None = None
 
 
 async def get_storage_service(supabase_client: AsyncClient) -> StorageService:

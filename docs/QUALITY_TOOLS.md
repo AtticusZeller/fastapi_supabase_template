@@ -1,121 +1,65 @@
-# Outils de Qualité de Code
+# Code Quality Tools
 
-Ce document détaille les outils de qualité de code configurés dans ce project, comment ils sont intégrés dans notre processus de développement, et comment les utiliser efficacement.
+This document details the code quality tools configured in this project, how they are integrated into our development process, and how to use them effectively.
 
 ## SonarCloud
 
-SonarCloud est un service d'analyse de code automatique en continu qui détecte les bugs, les vulnérabilités et les "code smells" dans votre code.
+SonarCloud is a continuous automatic code analysis service that detects bugs, vulnerabilities, and code smells in your code.
 
 ### Configuration
 
-Le project est configuré pour utiliser SonarCloud via le fichier `sonar-project.properties` à la racine du project et le workflow GitHub Actions `.github/workflows/sonarcloud.yml`.
+The project is configured to use SonarCloud via the `sonar-project.properties` file at the project root and the GitHub Actions workflow `.github/workflows/sonarcloud.yml`.
 
-### Métriques surveillées
+### Monitored Metrics
 
-- **Qualité de code** : Identification des problèmes de code comme les bugs potentials, les vulnérabilités et les "code smells"
-- **Couverture de tests** : Pourcentage du code couvert par les tests automatiques
-- **Duplication de code** : Détection des blocks de code dupliqués
-- **Complexité** : Analyse de la complexité cyclomatique et cognitive du code
-- **Dette technique** : Estimation du temps nécessaire pour corriger tous les problèmes de code
+- **Code Quality**: Identification of code issues such as potential bugs, vulnerabilities, and code smells
+- **Test Coverage**: Percentage of code covered by automated tests
+- **Code Duplication**: Detection of duplicated code blocks
+- **Complexity**: Analysis of cyclomatic and cognitive complexity
+- **Technical Debt**: Estimation of time needed to fix all code issues
 
-### Consultation des résultats
+### Viewing Results
 
-Les résultats de l'analyse SonarCloud sont disponibles :
+SonarCloud analysis results are available:
 
-1. Sur le [tableau de bord SonarCloud du project](https://sonarcloud.io/project/overview?id=acout_fastapi_supabase_template)
-2. Directement dans les Pull Requests via les commentaires de SonarCloud
-3. Via les badges dans le README du project
+1. On the [project's SonarCloud dashboard](https://sonarcloud.io/project/overview?id=acout_fastapi_supabase_template)
+2. Directly in Pull Requests via SonarCloud comments
+3. Via badges in the project README
 
-### Configuration locale
+### Local Configuration
 
-Pour configurer SonarCloud pour votre fork du project :
+To configure SonarCloud for your project fork:
 
-1. Créez un compte sur [SonarCloud](https://sonarcloud.io/) et liez-le à votre compte GitHub
-2. Importez votre dépôt dans SonarCloud
-3. Générez un token d'accès dans SonarCloud
-4. Ajoutez ce token comme secret GitHub dans votre dépôt avec le nom `SONAR_TOKEN`
-5. Adaptez le fichier `sonar-project.properties` pour refléter vos information d'organisation et de project
+1. Create an account on [SonarCloud](https://sonarcloud.io/) and link it to your GitHub account
+2. Import your repository into SonarCloud
+3. Generate an access token in SonarCloud
+4. Add this token as a GitHub secret in your repository with the name `SONAR_TOKEN`
+5. Adapt the `sonar-project.properties` file to reflect your organization and project information
 
 ## Codecov
 
-Codecov est un outil qui permet de visualiser et d'analyser la couverture de code de votre project.
+Codecov is a tool that allows you to visualize and analyze your project's code coverage.
 
 ### Configuration
 
-Codecov est intégré dans le workflow GitHub Actions principal `.github/workflows/main.yml`. Les rapports de couverture sont générés lors de l'exécution des tests et envoyés à Codecov.
+Codecov is integrated into the main GitHub Actions workflow `.github/workflows/main.yml`. Coverage reports are generated during test execution and sent to Codecov.
 
-### Fonctionnalités
+### Features
 
-- **Visualisation de couverture** : Interface graphique pour explorer la couverture de code
-- **Évolution de la couverture** : Suivi de l'évolution de la couverture dans le temps
-- **Analyse des Pull Requests** : Vérification automatique des changements de couverture lors des PRs
-- **Badges** : Badges de couverture pour votre README
+- **Coverage Visualization**: Graphical interface to explore code coverage
+- **Coverage Evolution**: Track coverage changes over time
+- **Pull Request Analysis**: Automatic verification of coverage changes in PRs
+- **Badges**: Coverage badges for your README
 
-### Configuration locale
+### Local Configuration
 
-Pour configurer Codecov pour votre fork :
+To configure Codecov for your fork:
 
-1. Créez un compte sur [Codecov](https://codecov.io/) et liez-le à votre compte GitHub
-2. Importez votre dépôt dans Codecov
-3. Générez un token Codecov si nécessaire
-4. Ajoutez ce token comme secret GitHub avec le nom `CODECOV_TOKEN`
+1. Create an account on [Codecov](https://codecov.io/) and link it to your GitHub account
+2. Import your repository into Codecov
+3. Generate a Codecov token if needed
+4. Add this token as a GitHub secret with the name `CODECOV_TOKEN`
 
-## Génération locale des rapports de couverture
+## Local Coverage Report Generation
 
-Vous pouvez générer des rapports de couverture localement pour vérifier les résultats avant de pousser vos modifications :
-
-```bash
-cd backend
-# Exécuter les tests avec génération des rapports de couverture
-bash scripts/run_ci_tests.sh
-```
-
-Cela générera :
-- Un rapport de couverture HTML dans `backend/htmlcov/index.html`
-- Un rapport XML dans `backend/coverage.xml` pour SonarCloud
-- Un rapport JUnit dans `backend/test-report.xml`
-
-## Intégration dans le processus de développement
-
-Les outils de qualité de code sont intégrés dans notre processus de développement de la manière suivante :
-
-1. **Localement** : Hooks pre-commit pour vérifier le style et la qualité avant chaque commit
-2. **Pull Requests** : Analyse automatique avec SonarCloud et vérification de la couverture avec Codecov
-3. **Intégration continue** : Exécution des tests et analyse du code sur chaque push
-
-## Seuils de qualité
-
-Les seuils suivants sont établis pour maintenir la qualité du code :
-
-- **Couverture de tests** : Minimum 80%
-- **Duplication de code** : Maximum 5%
-- **Dette technique** : Maximum 5% du temps de développement
-
-Les Pull Requests qui ne respectent pas ces seuils seront signalées comme problématiques, mais la décision finale d'acceptation reste à la discrétion des mainteneurs du project.
-
-## Résolution des problèmes communs
-
-### SonarCloud ne s'exécute pas
-
-1. Vérifiez que le secret `SONAR_TOKEN` est correctement configuré dans votre dépôt
-2. Assurez-vous que le fichier `sonar-project.properties` est correctement configuré
-3. Vérifiez les logs du workflow GitHub Actions pour identifier les erreurs
-
-### Faible couverture de code
-
-1. Exécutez les tests localement avec rapport de couverture : `bash scripts/run_ci_tests.sh`
-2. Ouvrez le rapport HTML (`backend/htmlcov/index.html`) pour identifier les parties non couvertes
-3. Ajoutez des tests pour les parties manquantes
-
-### Problèmes détectés par SonarCloud
-
-1. Consultez le tableau de bord SonarCloud pour voir les détails des problèmes
-2. Corrigez les problèmes dans votre code
-3. Relancez l'analyse pour vérifier que les problèmes sont résolus
-
-## Resources utiles
-
-- [Documentation SonarCloud](https://docs.sonarcloud.io/)
-- [Documentation Codecov](https://docs.codecov.io/)
-- [Documentation Pytest Coverage](https://pytest-cov.readthedocs.io/en/latest/)
-- [Guide des bonnes pratiques Python](https://docs.python-guide.org/)
+You can generate coverage reports locally to check results before pushing your changes:

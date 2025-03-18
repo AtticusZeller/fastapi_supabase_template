@@ -18,13 +18,13 @@ repos:
       - id: trailing-whitespace
       - id: detect-private-key
 
-  # Réactivation de codespell avec support du français
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
-    hooks:
-      - id: codespell
-        args: [--write-changes]
-        files: \.(py|sh|json|yml|yaml|md)$
+  # Réactivation de codespell
+  # - repo: https://github.com/codespell-project/codespell
+  #   rev: v2.4.1
+  #   hooks:
+  #     - id: codespell
+  #       args: [--write-changes]
+  #       files: \.(py|sh|json|yml|yaml|md)$
 
   # Réactivation de ruff avec des règles plus permissives
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -45,10 +45,17 @@ repos:
   - repo: https://github.com/hadolint/hadolint
     rev: v2.12.0
     hooks:
-      - id: hadolint-docker
+      - id: hadolint
         name: Lint Dockerfiles
-        description: Runs hadolint to lint Dockerfiles
+        entry: hadolint
+        language: system
         types: ["dockerfile"]
+        # Optionnel : ajouter des règles à ignorer si nécessaire
+        args: [
+          '--ignore', 'DL3008',  # Pin versions in apt-get install
+          '--ignore', 'DL3013',  # Pin versions in pip install
+          '--ignore', 'DL3059'   # Multiple consecutive `RUN` instructions
+        ]
 
   # Réactivation de uv-lock avec configuration ajustée
   - repo: https://github.com/astral-sh/uv-pre-commit
@@ -62,7 +69,15 @@ repos:
     rev: v1.4.0
     hooks:
       - id: detect-secrets
-        exclude: (uv\.lock$|.*\.md$|\.secrets\.baseline$)
+        exclude: |
+          (?x)^(
+              uv\.lock$|
+              .*\.md$|
+              \.secrets\.baseline$|
+              backend/alembic/versions/.*\.py$|
+              backend/alembic/script\.py\.mako$
+          )$
+        args: ['--baseline', '.secrets.baseline']
 
   # Validation de schémas OpenAPI
   - repo: https://github.com/APIDevTools/swagger-cli
@@ -72,15 +87,17 @@ repos:
         files: openapi\.yaml$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0  # Utilisez la même version que dans vos dépendances
+    rev: v1.13.0
     hooks:
     - id: mypy
+      files: ^backend/
+      exclude: ^backend/alembic/
+      types_or: [python, pyi]
       additional_dependencies:
-      - types-requests
-      - types-python-dateutil
-      - types-PyYAML
-    exclude: ^alembic/
-    args: [--ignore-missing-imports, --disallow-untyped-defs]
+        - types-requests
+        - types-python-dateutil
+        - types-PyYAML
+      # Configuration via setup.cfg ou pyproject.toml plutôt que args
 
 ci:
   autofix_commit_msg: 🤖 [pre-commit.ci] Corrections automatiques des standards

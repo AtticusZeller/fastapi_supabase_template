@@ -33,7 +33,8 @@ def configure_sentry() -> None:
                 FastApiIntegration(transaction_style="endpoint"),
                 SqlalchemyIntegration(),
             ],
-            release=f"{settings.PROJECT_NAME}@0.4.1",  # A remplacer par une version dynamique
+            # A remplacer par une version dynamique
+            release=f"{settings.PROJECT_NAME}@0.4.1",
         )
         logger.info(f"Sentry initialized in {env} environment")
     else:
@@ -86,8 +87,7 @@ async def read_root() -> dict[str, str]:
 @app.get("/debug-sentry", tags=["debug"])
 async def trigger_error() -> None:
     """Route pour tester l'intégration de Sentry"""
-    division_by_zero = 1 / 0
-    return division_by_zero  # noqa: F841
+    division_by_zero: float = 1 / 0  # noqa: F841
 
 
 # Logger

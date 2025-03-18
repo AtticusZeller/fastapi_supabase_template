@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import HTTPException, UploadFile
 from sqlmodel import Session
-from supabase.client import Client as SupabaseClient
+from supabase._async.client import AsyncClient
 
 from app.crud.file import file_metadata
 from app.models.base import StorageBucket
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class StorageService:
     """Service pour gérer le stockage de fichiers dans Supabase"""
 
-    def __init__(self, supabase_client: SupabaseClient):
+    def __init__(self, supabase_client: AsyncClient):
         self.client = supabase_client
 
     async def initialize_buckets(self, buckets: list[type[StorageBucket]]):

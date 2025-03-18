@@ -22,7 +22,7 @@ class ItemUpdate(ItemBase):
 
 
 # Database model, database table inferred from class name
-class Item(RLSModel, ItemBase, table=True):
+class Item(RLSModel, ItemBase):
     pass
 
 

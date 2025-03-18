@@ -1,83 +1,83 @@
-# Configuration Dependabot
+# Dependabot Configuration
 
-## Vue d'ensemble
+## Overview
 
-Ce project utilise Dependabot pour automatiser la gestion des dépendances et maintenir nos packages à jour, tout en privilégiant la sécurité. Cette documentation explique notre configuration et les bonnes pratiques associées.
+This project uses Dependabot to automate dependency management and keep our packages up to date while prioritizing security. This documentation explains our configuration and associated best practices.
 
 ## Configuration
 
-Notre configuration Dependabot gère trois écosystèmes distincts :
+Our Dependabot configuration manages three distinct ecosystems:
 
-1. **GitHub Actions** - Mises à jour des actions dans nos workflows CI/CD
-2. **Python (pip)** - Dépendances Python de notre application
-3. **Docker** - Mises à jour des images Docker
+1. **GitHub Actions** - Updates for actions in our CI/CD workflows
+2. **Python (pip)** - Python dependencies of our application
+3. **Docker** - Docker image updates
 
-### Fréquence et planification
+### Frequency and Scheduling
 
-Toutes les mises à jour sont planifiées le **lundi à 9h00 (heure de Paris)** afin de minimiser les perturbations pendant la semaine de travail. Cette planification permet à l'équipe de traiter les PRs de dépendances en début de semaine.
+All updates are scheduled for **Monday at 9:00 AM (Paris time)** to minimize disruption during the work week. This scheduling allows the team to process dependency PRs at the start of the week.
 
-### Regroupement intelligent
+### Smart Grouping
 
-Pour réduire le bruit et la charge de travail liée aux revues, nous avons configuré des regroupements :
+To reduce noise and review workload, we have configured groupings:
 
-- **GitHub Actions** : Toutes les mises à jour d'actions sont regroupées
-- **Python** : Séparation entre dépendances de production et de développement
-  - Regroupement des mises à jour mineures et de patchs
-  - Traitement individual des mises à jour majeures qui peuvent introduire des incompatibilités
-- **Docker** : Toutes les mises à jour Docker sont regroupées
+- **GitHub Actions**: All action updates are grouped together
+- **Python**: Separation between production and development dependencies
+  - Grouping of minor and patch updates
+  - Individual handling of major updates that may introduce incompatibilities
+- **Docker**: All Docker updates are grouped together
 
-### Automatisation des Pull Requests
+### Pull Request Automation
 
-Nous avons mis en place un workflow d'automatisation pour Dependabot :
+We have implemented an automation workflow for Dependabot:
 
-- **Approbation automatique** pour les mises à jour mineures et de patchs
-- **Merge automatique** pour les mises à jour de GitHub Actions
-- **Revue manuelle requise** pour les mises à jour majeures
+- **Automatic approval** for minor and patch updates
+- **Automatic merge** for GitHub Actions updates
+- **Manual review required** for major updates
 
-## Bonnes pratiques
+## Best Practices
 
-### Traitement des PRs Dependabot
+### Handling Dependabot PRs
 
-1. **Mises à jour mineures/patchs** : Généralement sûres, elles sont approuvées et fusionnées automatiquement
-2. **Mises à jour majeures** : Examiner attentivement les changements et les notes de version avant de fusionner
-3. **Vulnérabilités de sécurité** : Priorité absolute, à traiter dès que possible
+1. **Minor/patch updates**: Generally safe, they are automatically approved and merged
+2. **Major updates**: Carefully review changes and release notes before merging
+3. **Security vulnerabilities**: Absolute priority, to be addressed as soon as possible
 
-### Résolution des conflicts
+### Conflict Resolution
 
-En cas de conflicts dans les PRs Dependabot :
+In case of conflicts in Dependabot PRs:
 
-1. Vérifier les changements dans chaque fichier concerné
-2. Résoudre les conflicts manuellement en function des besoins du project
-3. Exécuter la suite de tests complète avant d'approuver
+1. Check changes in each affected file
+2. Resolve conflicts manually based on project needs
+3. Run complete test suite before approving
 
-### Ignorer certaines dépendances
+### Ignoring Dependencies
 
-Dans certains cas, il peut être nécessaire d'ignorer temporairement les mises à jour d'une dépendance spécifique. Pour ce faire :
+In some cases, it may be necessary to temporarily ignore updates for a specific dependency. To do this:
 
-1. Décommentez la section `ignore` dans `.github/dependabot.yml`
-2. Ajoutez le nom de la dépendance à ignorer
-3. Ajoutez un commentaire expliquant pourquoi cette dépendance est ignorée et jusqu'à quand
+1. Uncomment the `ignore` section in `.github/dependabot.yml`
+2. Add the name of the dependency to ignore
+3. Add a comment explaining why this dependency is ignored and until when
 
-## Dépannage
+## Troubleshooting
 
-### PRs Dependabot en échec
+### Failed Dependabot PRs
 
-Si les tests échouent sur une PR Dependabot :
+If tests fail on a Dependabot PR:
 
-1. Vérifiez si la mise à jour est compatible avec les autres dépendances
-2. Consultez les notes de version pour identifier les changements importants
-3. Mettez à jour le code ou les tests si nécessaire pour s'adapter aux nouvelles versions
+1. Check if the update is compatible with other dependencies
+2. Consult release notes to identify important changes
+3. Update code or tests if necessary to adapt to new versions
 
-### Trop de PRs ouvertes
+### Too Many Open PRs
 
-Si le nombre de PRs Dependabot devient difficile à gérer :
+If the number of Dependabot PRs becomes difficult to manage:
 
-1. Ajustez la fréquence des vérifications de `weekly` à `monthly`
-2. Réduisez la valeur de `open-pull-requests-limit`
-3. Envisagez de regrouper davantage de mises à jour ensemble
+1. Adjust check frequency from `weekly` to `monthly`
+2. Reduce the `open-pull-requests-limit` value
+3. Consider grouping more updates together
 
-## Resources additionnelles
+## Additional Resources
 
-- [Documentation Dependabot](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates)
-- [Configuration avancée de Dependabot](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file)
+- [Dependabot Documentation](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates)
+- [Advanced Dependabot Configuration](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file)
 - [GitHub Security Advisories](https://docs.github.com/en/code-security/security-advisories/about-coordinated-disclosure-of-security-vulnerabilities)
