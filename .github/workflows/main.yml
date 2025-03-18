@@ -41,6 +41,7 @@ env:
 
   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  SONAR_SCANNER_OPTS: -Dsonar.projectKey=acout_fastapi_supabase_template -Dsonar.organization=acout
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
   SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
@@ -266,7 +267,6 @@ jobs:
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: Approve Patch and Minor Updates
         if: ${{ !contains(github.event.pull_request.title, 'bump') || contains(github.event.pull_request.title, '⬆️') }}
@@ -288,7 +288,6 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           PR_TITLE: ${{github.event.pull_request.title}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
   # SonarCloud analysis for code quality
   sonarcloud:
@@ -363,12 +362,7 @@ jobs:
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: |
-            -Dsonar.projectKey=acout_fastapi_supabase_template
-            -Dsonar.organization=acout
+          SONAR_SCANNER_OPTS: -Dsonar.projectKey=acout_fastapi_supabase_template -Dsonar.organization=acout
 
       # Upload coverage reports to Codecov with reduced requirements
       - name: Upload coverage to Codecov
@@ -484,7 +478,7 @@ jobs:
           script: |
             echo "Deploying to Staging environment..."
             # Login to Docker registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+            docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
             # Pull latest image
             docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:staging
@@ -525,8 +519,6 @@ jobs:
         run: pip install git-cliff
 
       - name: Generate a changelog
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: git-cliff -v --latest --strip header -o CHANGES.md
 
       - name: Release
