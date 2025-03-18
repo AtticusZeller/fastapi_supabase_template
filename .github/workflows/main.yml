@@ -84,42 +84,38 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install pre-commit and mypy
+      - name: Install development tools
         run: |
-          # Install dependencies at system level
           uv pip install pre-commit mypy types-requests types-python-dateutil types-PyYAML --system
 
-          # Sync project dependencies without dev dependencies
+      - name: Install project dependencies
+        run: |
           cd backend
           uv sync --python 3.12 --all-extras --dev
 
       - name: Run pre-commit checks
         run: |
-          # Get files to check (excluding workflows)
           FILES_TO_CHECK=$(find . -type f -not -path "./.github/workflows/*" -not -path "./.git/*" -not -path "*/\.*")
 
-          # Run pre-commit with system Python
-          export SKIP=mypy  # Skip mypy in pre-commit
+          export SKIP=mypy
           set +e
           pre-commit run --files $FILES_TO_CHECK
           pre_commit_status=$?
           set -e
 
-          # Run mypy separately with system installation
           echo "Running mypy separately..."
           cd backend
           mypy . --ignore-missing-imports
           mypy_status=$?
 
-          # Handle results based on event type
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             if [ $pre_commit_status -eq 1 ] || [ $mypy_status -ne 0 ]; then
               echo "Formatting issues found. Committing fixes..."
-            git config --local user.email "actions@github.com"
-            git config --local user.name "GitHub Actions"
-            git add -A
+              git config --local user.email "actions@github.com"
+              git config --local user.name "GitHub Actions"
+              git add -A
               git commit -m "[STYLE] Automatic formatting fix (pre-commit)"
-            git push
+              git push
               echo "✅ Fixes pushed to branch."
             else
               echo "✅ All checks passed."
@@ -158,7 +154,6 @@ jobs:
       - name: Run Safety Check
         run: |
           cd backend
-          # Générer le rapport au format JSON
           safety check --json --full-report --file=pyproject.toml > safety-results.json || true
           echo "Results saved to safety-results.json"
 
