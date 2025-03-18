@@ -86,6 +86,10 @@ RUN if [ "$BUILD_ENV" = "test" ] || [ "$BUILD_ENV" = "dev" ]; then \
     uv pip install --system -e ".[test]" && \
     uv pip install --system \
     mypy \
+    pylint \
+    flake8 \
+    black \
+    isort \
     types-requests \
     types-python-dateutil \
     types-PyYAML \

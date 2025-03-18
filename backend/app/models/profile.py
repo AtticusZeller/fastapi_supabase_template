@@ -1,12 +1,22 @@
+import os
+
 from fastapi import UploadFile
 from sqlmodel import Field
+from supabase import Client, create_client
 
 from .base import RLSModel, StorageBucket
 
+supabase: Client = create_client(
+    os.getenv("SUPABASE_URL", ""), os.getenv("SUPABASE_KEY", "")
+)
 
-class Profile(RLSModel, table=True):
-    __tablename__ = "profiles"
-    __table_args__ = {"schema": "public"}
+
+class Profile(RLSModel):
+    class Config:
+        table = True
+        table_name = "profiles"
+        schema = "public"
+
     __rls_enabled__ = True
     email: str = Field(max_length=255)
     name: str | None = Field(default=None)

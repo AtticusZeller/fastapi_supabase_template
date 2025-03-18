@@ -113,11 +113,11 @@ jobs:
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             if [ $pre_commit_status -eq 1 ] || [ $mypy_status -ne 0 ]; then
               echo "Formatting issues found. Committing fixes..."
-              git config --local user.email "actions@github.com"
-              git config --local user.name "GitHub Actions"
-              git add -A
+            git config --local user.email "actions@github.com"
+            git config --local user.name "GitHub Actions"
+            git add -A
               git commit -m "[STYLE] Automatic formatting fix (pre-commit)"
-              git push
+            git push
               echo "✅ Fixes pushed to branch."
             else
               echo "✅ All checks passed."
@@ -307,30 +307,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Create a dummy .env.test file for testing
-      - name: Create test environment file
-        run: |
-          cat > .env.test << EOF
-          # Test environment configuration
-          ENVIRONMENT=test
-          PROJECT_NAME=fastapi-supabase-test
-          API_V1_STR=/api/v1
-          BACKEND_CORS_ORIGINS=["http://localhost:3000","http://localhost:8000"]
-          
-          # Test with SQLite to avoid external dependencies
-          DATABASE_URL=sqlite:///./test.db
-          
-          # Mock Supabase credentials for tests
-          SUPABASE_URL=http://localhost:3000
-          SUPABASE_ANON_KEY=mock-anon-key
-          SUPABASE_SERVICE_KEY=mock-service-key
-          
-          # Test auth settings
-          SECRET_KEY=test-secret-key-for-ci
-          FIRST_SUPERUSER=admin@example.com
-          FIRST_SUPERUSER_PASSWORD=adminpassword
-          EOF
-
       # Skip real Supabase verification for CI
       - name: Skip Supabase verification in CI
         run: |
@@ -353,7 +329,7 @@ jobs:
         run: |
           cd backend
           python -m pytest -v --cov=app --cov-report=xml --cov-report=term || true
-          
+
           # Create default coverage report if not generated
           if [ ! -f "coverage.xml" ]; then
             echo "Creating default coverage report for CI to continue"
@@ -414,7 +390,7 @@ jobs:
             ## Coverage Report
 
             Total coverage: ${{ env.COVERAGE_PCT }}%
-            
+
             Note: Coverage is being tracked but thresholds are relaxed during infrastructure setup.
 
   build:
