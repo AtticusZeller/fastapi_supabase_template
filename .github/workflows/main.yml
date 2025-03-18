@@ -86,12 +86,12 @@ jobs:
 
       - name: Install pre-commit and mypy
         run: |
-          # Install pre-commit and mypy at system level
+          # Install dependencies at system level
           uv pip install pre-commit mypy types-requests types-python-dateutil types-PyYAML --system
 
           # Sync project dependencies without dev dependencies
           cd backend
-          uv pip install --system $(uv pip compile pyproject.toml --no-deps | grep -v "^#")
+          uv sync --python 3.12 --all-extras --dev
 
       - name: Run pre-commit checks
         run: |
