@@ -31,6 +31,8 @@
         },
         "git.autofetch": true,
         "git.autofetchPeriod": 3600,
+        "git.enableCommitSigning": false,
+        "github.gitAuthentication": true,
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.analysis.extraPaths": [
           "/app"
@@ -43,14 +45,21 @@
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
           "source.organizeImports": true
-        }
+        },
+        "mypy.runUsingActiveInterpreter": true,
+        "mypy.configFile": "backend/pyproject.toml",
+        "mypy.targets": [
+          "backend"
+        ]
       },
       "extensions": [
         "ms-python.python",
         "ms-python.black-formatter",
         "ms-python.flake8",
         "github.vscode-github-actions",
-        "matangover.mypy"
+        "matangover.mypy",
+        "njpwerner.autodocstring",
+        "ms-azuretools.vscode-docker"
       ]
     }
   },
@@ -64,7 +73,10 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached",
   "remoteUser": "vscode",
   "mounts": [
-    "source=uv-cache,target=/app/.cache/uv,type=volume"
+    "source=uv-cache,target=/app/.cache/uv,type=volume",
+    "source=${localWorkspaceFolder}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.gh,target=/home/vscode/.gh,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.gnupg,target=/home/vscode/.gnupg,type=bind,consistency=cached,ro"
   ],
-  "postCreateCommand": "git config --global --add safe.directory . && pre-commit install"
+  "postCreateCommand": "bash .devcontainer/setup-gpg.sh && git config --global --add safe.directory . && pre-commit install"
 }
