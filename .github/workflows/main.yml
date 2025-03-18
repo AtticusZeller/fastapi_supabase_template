@@ -428,9 +428,9 @@ jobs:
   create-sentry-release:
     runs-on: ubuntu-latest
     needs: [build]
-    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/develop'
     env:
-      ENVIRONMENT: ${{ startsWith(github.ref, 'refs/tags/') && 'production' || github.ref == 'refs/heads/main' && 'staging' || 'development' }}
+      ENVIRONMENT: ${{ startsWith(github.ref, 'refs/tags/') && 'production' || github.ref == 'refs/heads/develop' && 'staging' || 'development' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -441,7 +441,7 @@ jobs:
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
-          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+          elif [[ $GITHUB_REF == refs/heads/develop ]]; then
             VERSION=$(git rev-parse --short HEAD)-staging
           else
             VERSION=$(git rev-parse --short HEAD)-dev
@@ -465,9 +465,19 @@ jobs:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: [create-sentry-release]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/develop'
+    env:
+      ENVIRONMENT: staging
     environment: staging
     steps:
+      - name: Waiting period before deployment
+        run: |
+          echo "🕒 SCHEDULED DEPLOYMENT IN 30 MINUTES 🕒"
+          echo "Deployment to staging will proceed automatically in 30 minutes unless cancelled."
+          echo "To cancel, go to GitHub Actions and click the 'Cancel workflow' button."
+          echo "Starting wait at $(date)"
+          echo "Will deploy at approximately $(date -d '+30 minutes')"
+          sleep 1800  # 30 minutes in seconds
       - name: Deploy to Staging Environment
         uses: appleboy/ssh-action@v1.0.3
         with:
