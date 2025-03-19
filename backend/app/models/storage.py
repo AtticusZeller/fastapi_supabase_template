@@ -37,3 +37,25 @@ class ItemDocuments(StorageBucket):
     def get_path_pattern(cls) -> str:
         """Personnalisation du pattern de chemin."""
         return "items/{record_id}/documents/{filename}"
+
+
+class RAGDocuments(StorageBucket):
+    """Bucket pour stocker les documents RAG."""
+
+    name: ClassVar[str] = "rag-documents"
+    public: ClassVar[bool] = False
+    allowed_mime_types: ClassVar[list[str]] = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain",
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ]
+    max_file_size: ClassVar[int] = 20 * 1024 * 1024  # 20MB
+
+    @classmethod
+    def get_path_pattern(cls) -> str:
+        """Personnalisation du pattern de chemin."""
+        return "rag/{user_id}/{filename}"
