@@ -11,7 +11,7 @@ repos:
       - id: sort-simple-yaml
       - id: check-json
       - id: pretty-format-json
-        args: [--autofix, --no-sort-keys ]
+        args: [--autofix, --no-sort-keys]
       - id: check-added-large-files
         args: [--maxkb=51200]
       - id: end-of-file-fixer
@@ -32,13 +32,13 @@ repos:
     hooks:
       - id: ruff
         args: [
-          --fix,
-          # Ignorer les erreurs communes pour débloquer le workflow
-          --ignore=F841,  # Local variable is assigned to but never used
-          --ignore=E402,  # Module level import not at top of file
-          --ignore=B011,  # Do not assert False
-          --ignore=F821,  # Undefined name
-        ]
+            --fix,
+            # Ignorer les erreurs communes pour débloquer le workflow
+            --ignore=F841, # Local variable is assigned to but never used
+            --ignore=E402, # Module level import not at top of file
+            --ignore=B011, # Do not assert False
+            --ignore=F821, # Undefined name
+          ]
       - id: ruff-format
 
   # Réactivation de hadolint avec configuration correcte
@@ -52,10 +52,13 @@ repos:
         types: ["dockerfile"]
         # Optionnel : ajouter des règles à ignorer si nécessaire
         args: [
-          '--ignore', 'DL3008',  # Pin versions in apt-get install
-          '--ignore', 'DL3013',  # Pin versions in pip install
-          '--ignore', 'DL3059'   # Multiple consecutive `RUN` instructions
-        ]
+            "--ignore",
+            "DL3008", # Pin versions in apt-get install
+            "--ignore",
+            "DL3013", # Pin versions in pip install
+            "--ignore",
+            "DL3059", # Multiple consecutive `RUN` instructions
+          ]
 
   # Réactivation de uv-lock avec configuration ajustée
   - repo: https://github.com/astral-sh/uv-pre-commit
@@ -77,7 +80,7 @@ repos:
               backend/alembic/versions/.*\.py$|
               backend/alembic/script\.py\.mako$
           )$
-        args: ['--baseline', '.secrets.baseline']
+        args: ["--baseline", ".secrets.baseline"]
 
   # Validation de schémas OpenAPI
   - repo: https://github.com/APIDevTools/swagger-cli
@@ -89,15 +92,16 @@ repos:
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:
-    - id: mypy
-      files: ^backend/
-      exclude: ^backend/alembic/
-      types_or: [python, pyi]
-      additional_dependencies:
-        - types-requests
-        - types-python-dateutil
-        - types-PyYAML
-      # Configuration via setup.cfg ou pyproject.toml plutôt que args
+      - id: mypy
+        files: ^backend/
+        exclude: ^backend/alembic/
+        types_or: [python, pyi]
+        additional_dependencies:
+          - types-requests
+          - types-python-dateutil
+          - types-PyYAML
+          - alembic
+        # Configuration via setup.cfg ou pyproject.toml plutôt que args
 
 ci:
   autofix_commit_msg: 🤖 [pre-commit.ci] Corrections automatiques des standards

@@ -78,7 +78,8 @@
         "streetsidesoftware.code-spell-checker",
         "yzhang.markdown-all-in-one",
         "redhat.vscode-yaml",
-        "github.vscode-github-actions"
+        "github.vscode-github-actions",
+        "ms-python.vscode-pylance"
       ]
     }
   },

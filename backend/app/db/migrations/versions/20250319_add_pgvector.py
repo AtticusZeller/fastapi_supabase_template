@@ -1,29 +1,30 @@
 """Add pgvector extension
 
 Revision ID: 20250319
-Revises: 
+Revises:
 Create Date: 2025-03-19
 """
-from typing import Sequence, Union
 
-from alembic import op
-import sqlalchemy as sa
+from collections.abc import Sequence
+
 from sqlalchemy import text
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '20250319'
-down_revision: Union[str, None] = None  # Ajuster selon la dernière migration
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "20250319"
+down_revision: str | None = None  # Ajuster selon la dernière migration
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
     # Activer l'extension pgvector
-    op.execute(text('CREATE EXTENSION IF NOT EXISTS vector;'))
-    
+    op.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+
     # Créer les fonctions d'aide pour la recherche vectorielle
-    op.execute(text('''
+    op.execute(
+        text("""
     CREATE OR REPLACE FUNCTION match_documents(
         query_embedding vector(1536),
         match_threshold float,
@@ -50,12 +51,13 @@ def upgrade() -> None:
         LIMIT match_count;
     END;
     $$;
-    '''))
+    """)
+    )
 
 
 def downgrade() -> None:
     # Supprimer les fonctions
-    op.execute(text('DROP FUNCTION IF EXISTS match_documents;'))
-    
+    op.execute(text("DROP FUNCTION IF EXISTS match_documents;"))
+
     # On ne supprime pas l'extension car d'autres applications pourraient l'utiliser
     # op.execute(text('DROP EXTENSION IF EXISTS vector;'))

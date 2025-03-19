@@ -6,7 +6,7 @@
 set -e
 
 # Récupérer les informations de connexion à la base de données
-DB_URL=${SUPABASE_DB_URL:-"postgresql://postgres:postgres@localhost:54322/postgres"}
+DB_URL=${SUPABASE_DB_URL}
 
 echo "Activation de l'extension pgvector dans la base de données..."
 

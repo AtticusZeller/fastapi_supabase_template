@@ -27,18 +27,7 @@ dependencies = [
     "pypdf>=4.0.0",
     "python-docx>=1.0.0",
     "openpyxl>=3.1.0",
-]
-
-[dependency-groups]
-dev = [
-    "coverage>=7.6.1",
-    "faker>=28.0.0",
-    "mypy>=1.13.0",
-    "pre-commit>=3.8.0",
-    "pytest-sugar>=1.0.0",
-    "pytest>=8.3.2",
-    "pytest-asyncio>=0.21.1",
-    "httpx>=0.28.1",
+    "pgmq>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -49,6 +38,23 @@ test = [
     "httpx>=0.25.0",
     "faker>=22.0.0",
     "pytest-watch>=4.2.0",
+    "coverage>=7.6.1",
+    "faker>=28.0.0",
+    "mypy>=1.13.0",
+    "pre-commit>=3.8.0",
+    "pytest-sugar>=1.0.0",
+    "pytest>=8.3.2",
+    "pytest-asyncio>=0.21.1",
+    "httpx>=0.28.1",
+    "mypy>=1.9.0",
+    "pylint>=3.1.0",
+    "flake8>=7.0.0",
+    "black>=24.3.0",
+    "isort>=5.13.2",
+    "types-requests>=2.31.0",
+    "types-python-dateutil>=2.8",
+    "types-PyYAML>=6.0",
+    "mypy>=1.9.0"
 ]
 
 [build-system]
@@ -57,7 +63,7 @@ build-backend = "hatchling.build"
 
 ## Test
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 ignore_missing_imports = true
 explicit_package_bases = true
 namespace_packages = true
@@ -72,6 +78,7 @@ module = [
     "alembic.*",
     "tests.*"
 ]
+implicit_reexport = true
 ignore_errors = true
 
 # Configurations pour les bibliothèques externes

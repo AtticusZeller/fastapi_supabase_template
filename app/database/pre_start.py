@@ -1,5 +1,4 @@
 import logging
-import os
 from sqlalchemy import text
 
 from app.database.session import engine
@@ -18,7 +17,7 @@ def init() -> None:
             conn.execute(create_extension_query)
             conn.commit()
         logger.info("Extension pgvector activated successfully")
-        
+
     except Exception as e:
         logger.error(f"Error initialising database: {e}")
         raise e

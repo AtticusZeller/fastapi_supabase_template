@@ -1,10 +1,15 @@
 import uuid
-from datetime import datetime
 
-import pytest
 from sqlmodel import Session, select
 
-from app.models.rag import Document, DocumentNode, QueryLog, DocumentType, ChunkingStrategy, NodeType
+from app.models.rag import (
+    ChunkingStrategy,
+    Document,
+    DocumentNode,
+    DocumentType,
+    NodeType,
+    QueryLog,
+)
 
 
 def test_document_model(session: Session):
@@ -23,12 +28,12 @@ def test_document_model(session: Session):
         metadata={"author": "Test Author", "keywords": ["test", "document"]},
         status="pending",
     )
-    
+
     # Ajout à la session et commit
     session.add(document)
     session.commit()
     session.refresh(document)
-    
+
     # Vérification des valeurs
     assert document.id is not None
     assert document.title == "Test Document"
@@ -38,11 +43,14 @@ def test_document_model(session: Session):
     assert document.embedding_model == "openai/text-embedding-3-small"
     assert document.chunk_size == 512
     assert document.chunk_overlap == 50
-    assert document.metadata == {"author": "Test Author", "keywords": ["test", "document"]}
+    assert document.metadata == {
+        "author": "Test Author",
+        "keywords": ["test", "document"],
+    }
     assert document.status == "pending"
     assert document.created_at is not None
     assert document.updated_at is not None
-    
+
     # Récupération depuis la base
     retrieved = session.exec(select(Document).where(Document.id == document.id)).first()
     assert retrieved is not None
@@ -63,7 +71,7 @@ def test_document_node_model(session: Session):
     session.add(document)
     session.commit()
     session.refresh(document)
-    
+
     # Création d'un node racine
     root_node = DocumentNode(
         document_id=document.id,
@@ -76,7 +84,7 @@ def test_document_node_model(session: Session):
     session.add(root_node)
     session.commit()
     session.refresh(root_node)
-    
+
     # Création d'un node enfant
     child_node = DocumentNode(
         document_id=document.id,
@@ -91,13 +99,13 @@ def test_document_node_model(session: Session):
     session.add(child_node)
     session.commit()
     session.refresh(child_node)
-    
+
     # Vérification des valeurs
     assert root_node.id is not None
     assert root_node.document_id == document.id
     assert root_node.node_type == NodeType.DOCUMENT
     assert root_node.parent_id is None
-    
+
     assert child_node.id is not None
     assert child_node.document_id == document.id
     assert child_node.node_type == NodeType.CHUNK
@@ -107,16 +115,16 @@ def test_document_node_model(session: Session):
     assert child_node.index == 1
     assert child_node.level == 1
     assert child_node.heading == "Introduction"
-    
+
     # Récupération depuis la base avec la relation
     retrieved_document = session.exec(
         select(Document).where(Document.id == document.id)
     ).first()
-    
+
     retrieved_nodes = session.exec(
         select(DocumentNode).where(DocumentNode.document_id == document.id)
     ).all()
-    
+
     assert len(retrieved_nodes) == 2
     assert any(node.node_type == NodeType.DOCUMENT for node in retrieved_nodes)
     assert any(node.node_type == NodeType.CHUNK for node in retrieved_nodes)
@@ -136,19 +144,19 @@ def test_query_log_model(session: Session):
         feedback_score=4,
         execution_time_ms=150,
     )
-    
+
     # Ajout à la session et commit
     session.add(query_log)
     session.commit()
     session.refresh(query_log)
-    
+
     # Vérification des valeurs
     assert query_log.id is not None
     assert query_log.query_text == "test query"
-    assert len(query_log.embedding) == 3
+    assert len(query_log.embedding or []) == 3
     assert query_log.filters == {"date": "2024-05-19"}
-    assert len(query_log.retrieved_node_ids) == 2
-    assert len(query_log.relevance_scores) == 2
+    assert len(query_log.retrieved_node_ids or []) == 2
+    assert len(query_log.relevance_scores or []) == 2
     assert query_log.relevance_scores[0] == 0.95
     assert query_log.response_text == "Generated response"
     assert query_log.feedback_score == 4

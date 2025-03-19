@@ -1,5 +1,5 @@
 # Ref: https://github.com/fastapi/full-stack-fastapi-template/blob/master/backend/Dockerfile
-FROM mcr.microsoft.com/devcontainers/python:1-3.12-bullseye
+FROM mcr.microsoft.com/devcontainers/python:1-3.11-bullseye
 
 # Set shell options
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -80,19 +80,10 @@ RUN --mount=type=cache,target=$UV_CACHE_DIR \
     echo "=== Site packages location ===" && \
     python -c "import site; print(site.getsitepackages())" && \
     echo "=== Site packages contents ===" && \
-    ls -la /usr/local/lib/python3.12/site-packages/
+    ls -la /usr/local/lib/python3.11/site-packages/
 
 RUN if [ "$BUILD_ENV" = "test" ] || [ "$BUILD_ENV" = "dev" ]; then \
-    uv pip install --system -e ".[test]" && \
-    uv pip install --system \
-    mypy \
-    pylint \
-    flake8 \
-    black \
-    isort \
-    types-requests \
-    types-python-dateutil \
-    types-PyYAML \
+    uv pip install --system -e ".[test]" \
     ; \
     fi
 
@@ -123,6 +114,4 @@ RUN if [ "$BUILD_ENV" = "dev" ]; then \
 USER ${USERNAME:-root}
 WORKDIR /app
 
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "80"]
-# If running behind a proxy like Nginx or Traefik add --proxy-headers
-# CMD ["fastapi", "run", "app/main.py", "--port", "80", "--proxy-headers"]
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]

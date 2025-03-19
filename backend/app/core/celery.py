@@ -4,9 +4,7 @@ from app.core.config import settings
 
 # Configuration de l'application Celery
 celery_app = Celery(
-    "app",
-    broker=settings.CELERY_BROKER_URL,
-    backend=settings.CELERY_RESULT_BACKEND,
+    "app", broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND
 )
 
 # Configuration depuis settings

@@ -44,7 +44,7 @@ Un template de project FastAPI intégrant Supabase pour l'authentification, la b
 
 ### Prérequis
 
-- Python 3.12+
+- Python 3.11+
 - [uv](https://github.com/astral-sh/uv) pour la gestion des dépendances
 - [pre-commit](https://pre-commit.com/) pour les hooks de pré-commit
 - [Supabase CLI](https://supabase.com/docs/guides/cli) pour le développement local
