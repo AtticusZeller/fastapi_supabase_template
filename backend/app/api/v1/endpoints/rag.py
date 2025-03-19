@@ -3,10 +3,9 @@ from typing import Dict, List, Any, Optional
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, status, Query
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import CurrentUser, SessionDep, StorageServiceDep
 from app.models.rag import DocumentType, ChunkingStrategy
 from app.services.rag import RAGService
-from app.services.storage import StorageService
 
 router = APIRouter(prefix="/rag", tags=["rag"])
 
