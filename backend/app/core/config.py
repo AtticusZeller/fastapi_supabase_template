@@ -8,6 +8,7 @@ from pydantic import (
     PostgresDsn,
     computed_field,
     model_validator,
+    Field,
 )
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -68,6 +69,16 @@ class Settings(BaseSettings):
     SENTRY_ENVIRONMENT: str = ""
     SENTRY_TRACES_SAMPLE_RATE: float = 0.1
     SENTRY_PROFILES_SAMPLE_RATE: float = 0.1
+
+    ## Celery Configuration
+    CELERY_BROKER_URL: str = Field(None, description="URL du broker Celery")
+    CELERY_RESULT_BACKEND: str = Field(None, description="URL du backend pour les résultats Celery")    
+    
+    ## Embedding Configuration
+    EMBEDDING_MODEL_ENDPOINT: str = Field("https://api.openai.com/v1/embeddings", description="API endpoint pour les embeddings vectoriels")
+    EMBEDDING_API_KEY: str = Field("", description="Clé API pour le service d'embeddings")
+    EMBEDDING_MODEL: str = Field("text-embedding-3-small", description="Modèle d'embedding par défaut")
+    EMBEDDING_DIMENSION: int = Field(1536, description="Dimension des vecteurs d'embedding")
 
     @computed_field  # type: ignore[prop-decorator]
     @property
