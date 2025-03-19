@@ -460,54 +460,20 @@ jobs:
           ignore_missing: true
           ignore_empty: true
 
-  # Deploy to staging environment (from main)
-  deploy-staging:
-    name: Deploy to Staging
+  notify-render-deployment:
+    name: Notify Render Deployment
     runs-on: ubuntu-latest
     needs: [create-sentry-release]
     if: github.ref == 'refs/heads/develop'
-    env:
-      ENVIRONMENT: staging
-    environment: staging
     steps:
-      - name: Waiting period before deployment
+      - name: Render Deployment Info
         run: |
-          echo "🕒 SCHEDULED DEPLOYMENT IN 30 MINUTES 🕒"
-          echo "Deployment to staging will proceed automatically in 30 minutes unless cancelled."
-          echo "To cancel, go to GitHub Actions and click the 'Cancel workflow' button."
-          echo "Starting wait at $(date)"
-          echo "Will deploy at approximately $(date -d '+30 minutes')"
-          sleep 1800  # 30 minutes in seconds
-      - name: Deploy to Staging Environment
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_SSH_PORT || 22 }}
-          script: |
-            echo "Deploying to Staging environment..."
-            # Login to Docker registry
-            docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-
-            # Pull latest image
-            docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:staging
-
-            # Deploy with docker-compose
-            cd ${{ secrets.STAGING_APP_PATH }}
-            echo "IMAGE_TAG=staging" > .env
-            docker-compose pull
-            docker-compose up -d
-
-            # Check if application is working
-            echo "Waiting for application to start..."
-            sleep 10
-            if curl -s --fail http://localhost:8000/api/v1/health; then
-              echo "✅ Application deployed successfully!"
-            else
-              echo "❌ Deployment failed - application not responding."
-              exit 1
-            fi
+          echo "## 🚀 Déploiement Staging" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Le déploiement vers l'environnement staging est géré automatiquement par Render.com" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⏱️ Le déploiement devrait être terminé dans environ 5-10 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 Vous pouvez suivre la progression sur le tableau de bord Render" >> $GITHUB_STEP_SUMMARY
 
   # Deployment (only for version tags)
   release:
