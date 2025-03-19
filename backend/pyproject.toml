@@ -18,6 +18,15 @@ dependencies = [
     "PyGithub>=1.58.0",
     "pre-commit>=3.8.0",
     "sentry-sdk[fastapi]>=1.42.0",
+    # Dépendances RAG et Celery
+    "celery>=5.3.6",
+    "redis>=5.0.1",
+    "pgvector>=0.2.0",
+    "numpy>=1.26.0",
+    "httpx>=0.28.0",
+    "pypdf>=4.0.0",
+    "python-docx>=1.0.0",
+    "openpyxl>=3.1.0",
 ]
 
 [dependency-groups]
