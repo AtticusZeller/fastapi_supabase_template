@@ -86,7 +86,7 @@ async def get_document_status(
             detail=f"Document with ID {document_id} not found",
         )
 
-    result = {
+    result: dict[str, Any] = {
         "document_id": str(document_id),
         "title": document.title,
         "status": document.status,

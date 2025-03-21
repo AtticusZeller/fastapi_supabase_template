@@ -5,8 +5,8 @@ from typing import Any
 
 import numpy as np
 from sqlmodel import select
-from supabase import create_client
 
+from app.core.auth import get_super_client
 from app.core.celery import celery_app
 from app.core.config import settings
 from app.core.db import get_db
@@ -14,13 +14,9 @@ from app.models.rag import Document, DocumentNode, DocumentType, NodeType
 
 logger = logging.getLogger(__name__)
 
-supabase_client = create_client(
-    supabase_url=settings.SUPABASE_URL, supabase_key=settings.SUPABASE_KEY
-)
-
 
 @celery_app.task(bind=True, name="process_document")
-def process_document(self, document_id: str) -> dict[str, Any]:
+async def process_document(self, document_id: str) -> dict[str, Any]:
     """
     Pipeline de traitement complet pour un document RAG.
 
@@ -37,7 +33,7 @@ def process_document(self, document_id: str) -> dict[str, Any]:
     start_time = time.time()
 
     # Initialiser les stats de traitement
-    processing_stats = {
+    processing_stats: dict[str, Any] = {
         "extraction_time": 0,
         "chunking_time": 0,
         "embedding_time": 0,
@@ -65,6 +61,7 @@ def process_document(self, document_id: str) -> dict[str, Any]:
         # 3. Récupérer le fichier depuis Supabase
         from app.services.storage import StorageService
 
+        supabase_client = await get_super_client()
         storage_service = StorageService(supabase_client=supabase_client)
 
         # Récupérer les métadonnées du fichier
@@ -159,7 +156,11 @@ def process_document(self, document_id: str) -> dict[str, Any]:
         processing_stats["metadata_time"] = int(time.time() - metadata_start)
 
         # 12. Mise à jour des métadonnées
-        document.metadata.update(extracted_metadata)
+        if document.metadata is None:
+            processing_stats["metadata"] = {}
+        else:
+            processing_stats["metadata"] = {**document.metadata, **extracted_metadata}
+
         processing_stats["total_time"] = int(time.time() - start_time)
         document.processing_stats = processing_stats
         session.commit()
