@@ -159,7 +159,9 @@ async def process_document(self, document_id: str) -> dict[str, Any]:
         if document.metadata is None:
             processing_stats["metadata"] = {}
         else:
-            processing_stats["metadata"] = {**document.metadata, **extracted_metadata}
+            # Convert SQLModel metadata to dict before unpacking
+            metadata_dict = dict(document.metadata)
+            processing_stats["metadata"] = {**metadata_dict, **extracted_metadata}
 
         processing_stats["total_time"] = int(time.time() - start_time)
         document.processing_stats = processing_stats
