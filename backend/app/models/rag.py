@@ -4,8 +4,8 @@ from enum import Enum
 from typing import Any
 
 from sqlalchemy import Column, Float, Text
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
+from sqlmodel import Field, Relationship
 
 from app.models.base import RLSModel
 
@@ -59,7 +59,7 @@ class Document(RLSModel):
     chunk_overlap: int = Field(default=50)
 
     # Statut et métadonnées
-    metadata: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONB))
+    doc_metadata: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONB))
     status: str = Field(
         default="pending"
     )  # pending, processing, indexing, ready, error
@@ -93,7 +93,7 @@ class DocumentNode(RLSModel):
 
     # Données de contenu
     content: str = Field(sa_column=Column(Text))
-    metadata: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONB))
+    node_metadata: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONB))
     embedding: list[float] | None = Field(
         default=None
     )  # Sera configuré comme VECTOR dans les migrations
@@ -122,7 +122,7 @@ class QueryLog(RLSModel):
 
     # Résultats et métadonnées
     retrieved_node_ids: list[uuid.UUID] = Field(
-        default_factory=list, sa_column=Column(ARRAY(SQLModel.UUID))
+        default_factory=list, sa_column=Column(ARRAY(UUID))
     )
     relevance_scores: list[float] = Field(
         default_factory=list, sa_column=Column(ARRAY(Float))

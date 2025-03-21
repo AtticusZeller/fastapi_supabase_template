@@ -30,11 +30,11 @@ class RAGService:
         file: UploadFile,
         client_id: uuid.UUID,
         title: str,
+        session: Session,
         document_type: DocumentType | None = None,
         chunking_strategy: ChunkingStrategy | None = None,
         embedding_model: str | None = None,
         metadata: dict[str, Any] | None = None,
-        session: Session = None,
     ) -> dict[str, Any]:
         """
         Point d'entrée unifié pour l'ingestion de documents.
@@ -171,10 +171,10 @@ class RAGService:
         self,
         query: str,
         client_id: uuid.UUID,
+        session: Session,
         filters: dict[str, Any] | None = None,
         document_types: list[DocumentType] | None = None,
         limit: int = 10,
-        session: Session = None,
     ) -> dict[str, Any]:
         """
         Recherche RAG hybride avancée.
@@ -186,11 +186,10 @@ class RAGService:
         """
         try:
             # Vérification des documents disponibles
-            documents_count = session.exec(
-                select(Document).where(
-                    Document.client_id == client_id, Document.status == "ready"
-                )
-            ).count()
+            documents_query = select(Document).where(
+                Document.client_id == client_id, Document.status == "ready"
+            )
+            documents_count = len(session.exec(documents_query).all())
 
             if documents_count == 0:
                 return {

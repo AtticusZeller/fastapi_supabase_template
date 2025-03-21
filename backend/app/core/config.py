@@ -5,7 +5,6 @@ from typing import Annotated, Any, Literal, Self
 from pydantic import (
     AnyUrl,
     BeforeValidator,
-    Field,
     PostgresDsn,
     computed_field,
     model_validator,
@@ -71,25 +70,14 @@ class Settings(BaseSettings):
     SENTRY_PROFILES_SAMPLE_RATE: float = 0.1
 
     ## Celery Configuration
-    CELERY_BROKER_URL: str = Field(None, description="URL du broker Celery")
-    CELERY_RESULT_BACKEND: str = Field(
-        None, description="URL du backend pour les résultats Celery"
-    )
+    CELERY_BROKER_URL: str = ""
+    CELERY_RESULT_BACKEND: str = ""
 
     ## Embedding Configuration
-    EMBEDDING_MODEL_ENDPOINT: str = Field(
-        "https://api.openai.com/v1/embeddings",
-        description="API endpoint pour les embeddings vectoriels",
-    )
-    EMBEDDING_API_KEY: str = Field(
-        "", description="Clé API pour le service d'embeddings"
-    )
-    EMBEDDING_MODEL: str = Field(
-        "text-embedding-3-small", description="Modèle d'embedding par défaut"
-    )
-    EMBEDDING_DIMENSION: int = Field(
-        1536, description="Dimension des vecteurs d'embedding"
-    )
+    EMBEDDING_MODEL_ENDPOINT: str = "https://api.openai.com/v1/embeddings"
+    EMBEDDING_API_KEY: str = ""
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    EMBEDDING_DIMENSION: int = 1536
 
     @computed_field  # type: ignore[prop-decorator]
     @property
