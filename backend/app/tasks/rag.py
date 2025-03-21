@@ -159,8 +159,10 @@ async def process_document(self, document_id: str) -> dict[str, Any]:
         if document.metadata is None:
             processing_stats["metadata"] = {}
         else:
-            # Convert SQLModel metadata to dict before unpacking
-            metadata_dict = dict(document.metadata)
+            # Convertir les métadonnées SQLAlchemy en dict de manière sûre
+            metadata_dict = (
+                document.doc_metadata.copy() if document.doc_metadata else {}
+            )
             processing_stats["metadata"] = {**metadata_dict, **extracted_metadata}
 
         processing_stats["total_time"] = int(time.time() - start_time)
