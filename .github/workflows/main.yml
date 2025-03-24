@@ -478,11 +478,64 @@ jobs:
 
       - name: Enhance SonarCloud Report
         run: |
-          # Ajouter les métriques détaillées au rapport existant
           echo "## 🔍 Analyse détaillée SonarCloud" >> $GITHUB_STEP_SUMMARY
-          curl -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" \
-            "https://sonarcloud.io/api/measures/component?component=acout_fastapi_supabase_template" \
-            | jq -r '.component.measures[] | "- \(.metric): \(.value)"' >> $GITHUB_STEP_SUMMARY
+
+          # Fonction pour récupérer et vérifier les mesures
+          get_sonar_metrics() {
+            local RESPONSE
+            RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" \
+              "https://sonarcloud.io/api/measures/component?component=acout_fastapi_supabase_template&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,security_rating")
+
+            if echo "$RESPONSE" | jq -e '.component.measures' >/dev/null 2>&1; then
+              echo "$RESPONSE"
+              return 0
+            fi
+            return 1
+          }
+
+          # Attendre et réessayer
+          MAX_ATTEMPTS=6
+          for ((i=1; i<=MAX_ATTEMPTS; i++)); do
+            echo "Tentative $i de récupération des métriques..."
+
+            if METRICS=$(get_sonar_metrics); then
+              # Formatage des métriques avec gestion d'erreur
+              {
+                echo "### 📊 Métriques"
+                echo "$METRICS" | jq -r '
+                  .component.measures |
+                  map(
+                    "- **" + (.metric |
+                      if . == "bugs" then "Bugs"
+                      elif . == "vulnerabilities" then "Vulnérabilités"
+                      elif . == "code_smells" then "Code Smells"
+                      elif . == "coverage" then "Couverture"
+                      elif . == "duplicated_lines_density" then "Duplication"
+                      elif . == "security_rating" then "Sécurité"
+                      else .
+                      end
+                    ) + "**: " + .value
+                  ) |
+                  .[]
+                ' || echo "- ⚠️ Erreur de formatage des métriques"
+
+                echo ""
+                echo "### 🔗 Liens"
+                echo "- [Dashboard SonarCloud](https://sonarcloud.io/dashboard?id=acout_fastapi_supabase_template)"
+                echo "- [Rapport de couverture](https://sonarcloud.io/component_measures?id=acout_fastapi_supabase_template&metric=coverage)"
+                echo "- [Issues](https://sonarcloud.io/project/issues?id=acout_fastapi_supabase_template)"
+              } >> $GITHUB_STEP_SUMMARY
+
+              break
+            fi
+
+            if [ $i -eq $MAX_ATTEMPTS ]; then
+              echo "### ⚠️ Analyse SonarCloud" >> $GITHUB_STEP_SUMMARY
+              echo "Les métriques ne sont pas encore disponibles. Veuillez consulter le [dashboard SonarCloud](https://sonarcloud.io/dashboard?id=acout_fastapi_supabase_template) ultérieurement." >> $GITHUB_STEP_SUMMARY
+            else
+              sleep 5
+            fi
+          done
 
   build:
     name: Build and Push Docker Image
