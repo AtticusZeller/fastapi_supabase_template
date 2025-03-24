@@ -21,13 +21,14 @@ dependencies = [
     # Dépendances RAG et Celery
     "celery>=5.3.6",
     "redis>=5.0.1",
-    "pgvector>=0.2.0",
+    "pgvector>=0.2.3",
     "numpy>=1.26.0",
     "httpx>=0.28.0",
     "pypdf>=4.0.0",
     "python-docx>=1.0.0",
     "openpyxl>=3.1.0",
     "pgmq>=0.1.0",
+    "celery[redis]>=5.3.6",
 ]
 
 [project.optional-dependencies]
@@ -37,7 +38,7 @@ test = [
     "pytest-cov>=4.1.0",
     "httpx>=0.25.0",
     "faker>=22.0.0",
-    "pytest-watch>=4.2.0",
+    "pytest-watcher>=0.3.0",
     "coverage>=7.6.1",
     "faker>=28.0.0",
     "mypy>=1.13.0",
@@ -54,7 +55,14 @@ test = [
     "types-requests>=2.31.0",
     "types-python-dateutil>=2.8",
     "types-PyYAML>=6.0",
-    "mypy>=1.9.0"
+    "mypy>=1.9.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-benchmark>=4.0.0",
+    "pytest-mock>=3.12.0",
+    "pytest-env>=1.1.3",
+    "pytest-timeout>=2.3.1",
+    "pytest-clarity>=1.0.1",
+    "pytest-randomly>=3.15.0",
 ]
 
 [build-system]
@@ -95,7 +103,16 @@ disallow_incomplete_defs = false
 [tool.pytest.ini_options]
 # Set additional command line options for pytest
 # Ref: https://docs.pytest.org/en/stable/reference/reference.html#command-line-flags
-addopts = "-rXs --strict-config --strict-markers --tb=short"
+addopts = """
+    -rXs
+    --strict-config
+    --strict-markers
+    --tb=short
+    -n auto
+    --benchmark-only
+    --randomly-seed=1234
+    --randomly-dont-reset-seed
+"""
 xfail_strict = true         # Treat tests that are marked as xfail but pass as test failures
 # Filtre pour ignorer le warning spécifique de coroutine non-awaited dans AsyncMockMixin
 filterwarnings = [
@@ -105,6 +122,11 @@ pythonpath = "app"
 
 [tool.coverage.run]
 branch = true
+parallel = true
+concurrency = [
+    "thread",
+    "multiprocessing",
+]
 
 [tool.coverage.report]
 skip_covered = true
