@@ -620,8 +620,8 @@ jobs:
               exit 1
             fi
 
-# Ajouter un nouveau job qui consolide les rapports existants
-quality-summary:
+  # Ajouter un nouveau job qui consolide les rapports existants
+  quality-summary:
     name: Quality Summary
     needs: [sonarcloud, security]
     runs-on: ubuntu-latest
