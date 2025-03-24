@@ -226,6 +226,9 @@ jobs:
             echo "🔀 Pull Request: #${GITHUB_EVENT_NUMBER:-N/A}" >> security-report.md
           fi
 
+          echo "## 🔗 Rapports de sécurité" >> security-report.md
+          echo "- [Rapport Bandit complet](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> security-report.md
+
       - name: Add Security Report Comment
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
@@ -410,6 +413,23 @@ jobs:
         env:
           SONAR_SCANNER_OPTS: -Dsonar.projectKey=acout_fastapi_supabase_template -Dsonar.organization=acout
 
+      # Générer le rapport après l'analyse
+      - name: Generate Sonar Report
+        run: |
+          echo "## 🔍 Analyse SonarCloud" >> sonar-report.md
+          curl -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" \
+            "https://sonarcloud.io/api/measures/component?component=acout_fastapi_supabase_template" \
+            | jq -r '.component.measures[] | "- \(.metric): \(.value)"' >> sonar-report.md
+
+          echo "## 🔗 Analyse qualité" >> sonar-report.md
+          echo "- [Rapport SonarCloud complet](https://sonarcloud.io/dashboard?id=acout_fastapi_supabase_template)" >> sonar-report.md
+
+      - name: Upload Sonar Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-report
+          path: sonar-report.md
+
       # Upload coverage reports to Codecov with reduced requirements
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -432,6 +452,14 @@ jobs:
             Total coverage: ${{ env.COVERAGE_PCT }}%
 
             Note: Coverage is being tracked but thresholds are relaxed during infrastructure setup.
+
+      - name: Enhance SonarCloud Report
+        run: |
+          # Ajouter les métriques détaillées au rapport existant
+          echo "## 🔍 Analyse détaillée SonarCloud" >> $GITHUB_STEP_SUMMARY
+          curl -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" \
+            "https://sonarcloud.io/api/measures/component?component=acout_fastapi_supabase_template" \
+            | jq -r '.component.measures[] | "- \(.metric): \(.value)"' >> $GITHUB_STEP_SUMMARY
 
   build:
     name: Build and Push Docker Image
@@ -591,3 +619,43 @@ jobs:
               echo "❌ Deployment failed - application not responding."
               exit 1
             fi
+
+# Ajouter un nouveau job qui consolide les rapports existants
+quality-summary:
+    name: Quality Summary
+    needs: [sonarcloud, security]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: sonar-report
+          path: reports
+
+      - name: Consolidate Reports
+        run: |
+          echo "# 📊 Rapport de Qualité Consolidé" > $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Ajouter le rapport SonarCloud
+          if [ -f "reports/sonar-report.md" ]; then
+            cat reports/sonar-report.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Ajouter les autres rapports
+          echo "## Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage total: ${{ env.COVERAGE_PCT }}%" >> $GITHUB_STEP_SUMMARY
+
+          # Ajouter le prompt pour les agents
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "@claude Voici les points à analyser :" >> $GITHUB_STEP_SUMMARY
+          echo "1. La couverture des tests est-elle suffisante ?" >> $GITHUB_STEP_SUMMARY
+          echo "2. Quels sont les risques de sécurité prioritaires ?" >> $GITHUB_STEP_SUMMARY
+          echo "3. Quelles parties du code nécessitent le plus d'attention ?" >> $GITHUB_STEP_SUMMARY
+
+          echo "## 🔗 Rapports de sécurité" >> $GITHUB_STEP_SUMMARY
+          echo "- [Rapport de sécurité](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> $GITHUB_STEP_SUMMARY
+          echo "- [Rapport SonarCloud](https://sonarcloud.io/dashboard?id=acout_fastapi_supabase_template)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Rapport Sentry](https://sentry.io/organizations/${SENTRY_ORG}/issues/?project=${SENTRY_PROJECT})" >> $GITHUB_STEP_SUMMARY

@@ -28,13 +28,20 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    allow:
+      - dependency-type: "all"
+    versioning-strategy: "auto"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
     commit-message:
       prefix: "⬆️ [DEPS]"
       include: "scope"
     labels:
       - "dependencies"
       - "python"
+      - "major-update"
     # Grouper les mises à jour mineures et de patch pour réduire le nombre de PRs
     groups:
       production-dependencies:
