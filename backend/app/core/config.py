@@ -69,6 +69,16 @@ class Settings(BaseSettings):
     SENTRY_TRACES_SAMPLE_RATE: float = 0.1
     SENTRY_PROFILES_SAMPLE_RATE: float = 0.1
 
+    ## Celery Configuration
+    CELERY_BROKER_URL: str = ""
+    CELERY_RESULT_BACKEND: str = ""
+
+    ## Embedding Configuration
+    EMBEDDING_MODEL_ENDPOINT: str = "https://api.openai.com/v1/embeddings"
+    EMBEDDING_API_KEY: str = ""
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    EMBEDDING_DIMENSION: int = 1536
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:

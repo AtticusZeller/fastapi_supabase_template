@@ -2,14 +2,22 @@
 
 ## Table des matières
 
-- [Introduction](#introduction)
-- [Environment de développement](#environnement-de-développement)
-- [Workflow de développement](#workflow-de-développement)
-- [Standards de codage](#standards-de-codage)
-- [Tests](#tests)
-- [Revue de code](#revue-de-code)
-- [Gestion des branches](#gestion-des-branches)
-- [Pull Requests](#pull-requests)
+- [Guide de contribution](#guide-de-contribution)
+  - [Table des matières](#table-des-matières)
+  - [Introduction](#introduction)
+  - [Environment de développement](#environment-de-développement)
+    - [Prérequis](#prérequis)
+    - [Installation](#installation)
+  - [Workflow de développement](#workflow-de-développement)
+  - [Standards de codage](#standards-de-codage)
+    - [Principes généraux](#principes-généraux)
+    - [Style de code](#style-de-code)
+    - [Structure des imports](#structure-des-imports)
+  - [Tests](#tests)
+    - [Exécution des tests:](#exécution-des-tests)
+  - [Revue de code](#revue-de-code)
+  - [Gestion des branches](#gestion-des-branches)
+  - [Pull Requests](#pull-requests)
 
 ## Introduction
 
@@ -19,7 +27,7 @@ Bienvenue dans le guide de contribution d'Insperio Labs! Ce document a pour but 
 
 ### Prérequis
 
-- Python 3.12+
+- Python 3.11+
 - [uv](https://github.com/astral-sh/uv) pour la gestion des dépendances
 - [pre-commit](https://pre-commit.com/) pour les hooks de pré-commit
 - [Supabase CLI](https://supabase.com/docs/guides/cli) pour le développement local
