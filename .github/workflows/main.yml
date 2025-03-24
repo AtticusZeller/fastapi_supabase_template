@@ -417,10 +417,33 @@ jobs:
       - name: Generate Sonar Report
         run: |
           echo "## 🔍 Analyse SonarCloud" >> sonar-report.md
-          curl -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" \
-            "https://sonarcloud.io/api/measures/component?component=acout_fastapi_supabase_template" \
-            | jq -r '.component.measures[] | "- \(.metric): \(.value)"' >> sonar-report.md
 
+          # Attendre que l'analyse soit disponible (max 30 secondes)
+          for i in {1..6}; do
+            RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" \
+              "https://sonarcloud.io/api/measures/component?component=acout_fastapi_supabase_template&metricKeys=coverage,bugs,vulnerabilities,code_smells,security_rating")
+
+            if echo "$RESPONSE" | jq -e '.component.measures' >/dev/null; then
+              # Traiter les mesures si elles existent
+              echo "$RESPONSE" | jq -r '
+                .component.measures |
+                map("- \(.metric): \(.value)") |
+                .[]
+              ' >> sonar-report.md
+              break
+            fi
+
+            echo "Waiting for SonarCloud analysis to be available... (attempt $i)"
+            sleep 5
+          done
+
+          # Ajouter un message par défaut si pas de mesures
+          if [ ! -s sonar-report.md ]; then
+            echo "- Analyse en cours de traitement" >> sonar-report.md
+            echo "- Consultez le tableau de bord pour plus de détails" >> sonar-report.md
+          fi
+
+          echo "" >> sonar-report.md
           echo "## 🔗 Analyse qualité" >> sonar-report.md
           echo "- [Rapport SonarCloud complet](https://sonarcloud.io/dashboard?id=acout_fastapi_supabase_template)" >> sonar-report.md
 
