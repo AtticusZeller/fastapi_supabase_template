@@ -317,6 +317,7 @@ jobs:
       - name: Generate and Apply Migrations
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
+          POSTGRES_SERVER: ${{ secrets.POSTGRES_SERVER }}
           ENVIRONMENT: staging
         run: |
           python backend/scripts/migrate.py staging revision \
