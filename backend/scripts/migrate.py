@@ -6,26 +6,52 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
+def load_environment(environment: str) -> bool:
+    """
+    Load environment variables from file or use existing CI/CD variables
+    :param environment: 'development', 'staging', or 'production'
+    :return: True if environment is loaded successfully
+    """
+    # Si on est dans GitHub Actions, les variables sont déjà définies
+    if os.getenv("GITHUB_ACTIONS"):
+        return True
+
+    # Sinon, on cherche le fichier .env correspondant
+    env_file = Path(f".env.{environment}")
+    if env_file.exists():
+        load_dotenv(env_file)
+        return True
+
+    print(f"⚠️ No environment file found for {environment}")
+    return False
+
+
 def run_migration(
     environment: str, command: str, message: str = "", auto_apply: bool = False
-):
+) -> bool:
     """
     Run alembic commands with specific environment
     :param environment: 'development', 'staging', or 'production'
     :param command: 'upgrade', 'downgrade', 'current', etc.
-    :param message: Migration message
-    :param auto_apply: Whether to automatically apply and test migrations
+    :param message: Migration message for revision command
+    :param auto_apply: Whether to automatically apply migrations
+    :return: True if successful, False otherwise
     """
-    # Charger le bon fichier d'environnement
-    env_file = Path(f".env.{environment}")
-    if not env_file.exists():
-        print(f"Environment file {env_file} not found!")
+    # Vérifier que l'environnement est correctement configuré
+    if not load_environment(environment):
+        if not os.getenv("DATABASE_URL"):
+            print("❌ No database configuration found!")
+            sys.exit(1)
+
+    # Vérifier la présence des variables requises
+    required_vars = ["DATABASE_URL", "POSTGRES_SERVER"]
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        print(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
         sys.exit(1)
 
-    load_dotenv(env_file)
-
-    # Sauvegarder l'état actuel
-    current_rev = subprocess.check_output(["alembic", "current"], text=True).strip()
+    print(f"🎯 Target environment: {environment}")
+    print(f"🔌 Database: {os.getenv('POSTGRES_SERVER')}")
 
     try:
         os.chdir("backend")
@@ -37,30 +63,27 @@ def run_migration(
             )
 
             if auto_apply:
-                # Vérifier le downgrade
+                # Vérifier et appliquer la migration
                 latest_migration = sorted(Path("migrations/versions").glob("*.py"))[-1]
                 if "def downgrade" not in latest_migration.read_text():
-                    print("⚠️ Migration n'a pas de fonction downgrade !")
+                    print("⚠️ Migration doesn't have a downgrade function!")
                     latest_migration.unlink()
                     return False
 
-                # Test upgrade
+                # Test upgrade/downgrade cycle
                 subprocess.run(["alembic", "upgrade", "head"], check=True)
-
-                # Test downgrade
                 subprocess.run(["alembic", "downgrade", "-1"], check=True)
-
-                # Réappliquer si tout est ok
                 subprocess.run(["alembic", "upgrade", "head"], check=True)
 
         elif command == "downgrade":
-            # Confirmation pour environnements sensibles
-            if environment in ["production", "staging"]:
+            if environment in ["production", "staging"] and not os.getenv(
+                "GITHUB_ACTIONS"
+            ):
                 confirm = input(
-                    f"⚠️ Voulez-vous vraiment faire un rollback en {environment}? [y/N] "
+                    f"⚠️ Are you sure you want to downgrade in {environment}? [y/N] "
                 )
                 if confirm.lower() != "y":
-                    print("Rollback annulé")
+                    print("Downgrade cancelled")
                     return False
 
             subprocess.run(["alembic", "downgrade", "-1"], check=True)
@@ -72,9 +95,6 @@ def run_migration(
 
     except subprocess.CalledProcessError as e:
         print(f"❌ Migration failed: {e}")
-        if command == "revision" and auto_apply:
-            print("Rollback des changements...")
-            subprocess.run(["alembic", "downgrade", current_rev], check=True)
         return False
     finally:
         os.chdir("..")
