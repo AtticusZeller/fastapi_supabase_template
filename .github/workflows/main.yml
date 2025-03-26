@@ -320,6 +320,9 @@ jobs:
           POSTGRES_SERVER: ${{ secrets.POSTGRES_SERVER }}
           ENVIRONMENT: staging
         run: |
+          # Créer le dossier versions s'il n'existe pas
+          mkdir -p backend/alembic/versions
+
           python backend/scripts/migrate.py staging revision \
             --message "Auto-migration from GitHub Actions" \
             --auto-apply
