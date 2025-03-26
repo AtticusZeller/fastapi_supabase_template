@@ -63,10 +63,23 @@ def run_migration(
             )
 
             if auto_apply:
-                # Vérifier et appliquer la migration
-                latest_migration = sorted(Path("migrations/versions").glob("*.py"))[-1]
-                if "def downgrade" not in latest_migration.read_text():
-                    print("⚠️ Migration doesn't have a downgrade function!")
+                # Vérifier si des migrations ont été générées
+                versions_dir = Path("alembic/versions")
+                if not versions_dir.exists():
+                    print("❌ Dossier versions non trouvé")
+                    return False
+
+                migration_files = list(versions_dir.glob("*.py"))
+                if not migration_files:
+                    print("ℹ️ Aucune migration générée")
+                    return True
+
+                latest_migration = sorted(migration_files)[-1]
+
+                # Vérifier le contenu de la migration
+                content = latest_migration.read_text()
+                if "def downgrade" not in content:
+                    print("⚠️ Migration n'a pas de fonction downgrade !")
                     latest_migration.unlink()
                     return False
 
