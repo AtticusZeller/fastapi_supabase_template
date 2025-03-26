@@ -1,13 +1,29 @@
+import os
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from alembic.env import get_url
 from app.models import STORAGE_BUCKETS
+
+
+def get_db_url() -> str:
+    """Construit l'URL de connexion à partir des variables d'environnement"""
+    user = os.getenv("POSTGRES_USER", "postgres")
+    password = os.getenv("POSTGRES_PASSWORD")
+    server = os.getenv("POSTGRES_SERVER")
+    port = os.getenv("POSTGRES_PORT", "5432")
+    db = os.getenv("POSTGRES_DB", "postgres")
+    project_id = os.getenv("SUPABASE_PROJECT_ID")
+
+    # Format spécial pour Supabase
+    pooler_user = f"{user}.{project_id}" if project_id else user
+
+    return f"postgresql://{pooler_user}:{password}@{server}:{port}/{db}"
 
 
 def init_storage():
     """Initialise les buckets et policies storage"""
-    engine = create_engine(get_url())
+    engine = create_engine(get_db_url())
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     with SessionLocal() as session:
