@@ -2,7 +2,7 @@ import logging
 
 from sqlalchemy import text
 
-from app.database.session import engine
+from app.core.db import engine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

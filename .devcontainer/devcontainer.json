@@ -75,7 +75,6 @@
         "ms-python.isort",
         "tamasfe.even-better-toml",
         "ryanluker.vscode-coverage-gutters",
-        "streetsidesoftware.code-spell-checker",
         "yzhang.markdown-all-in-one",
         "redhat.vscode-yaml",
         "github.vscode-github-actions",

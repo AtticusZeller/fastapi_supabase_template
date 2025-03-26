@@ -16,7 +16,6 @@ class RLSModel(SQLModel, table=True):  # type: ignore
     """Classe de base avec politiques RLS par défaut"""
 
     # Configuration SQLAlchemy via variables de classe
-    __tablename__: str | None = None  # Sera défini par les sous-classes
     __table_args__ = {"schema": "public", "keep_existing": True}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)

@@ -21,7 +21,7 @@ async def get_task_status(
     dans le système, qu'elle soit liée au RAG, au traitement d'image, etc.
     """
     # Récupérer le résultat de la tâche Celery
-    task_result = AsyncResult(task_id, app=celery_app)
+    task_result: AsyncResult[Any] = AsyncResult(task_id, app=celery_app)
 
     # Préparer la réponse
     result = {"task_id": task_id, "status": task_result.status}

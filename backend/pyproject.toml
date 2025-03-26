@@ -63,6 +63,7 @@ test = [
     "pytest-timeout>=2.3.1",
     "pytest-clarity>=1.0.1",
     "pytest-randomly>=3.15.0",
+    "celery-types>=0.23.0",
 ]
 
 [build-system]
@@ -78,7 +79,8 @@ namespace_packages = true
 exclude = [
     "alembic/",
     "tests/",
-    "backend/app/models.py"
+    "backend/app/models.py",
+    "scripts/"
 ]
 
 [[tool.mypy.overrides]]
@@ -91,7 +93,7 @@ ignore_errors = true
 
 # Configurations pour les bibliothèques externes
 [[tool.mypy.overrides]]
-module = ["alembic.*", "supabase.*"]
+module = ["alembic.*", "supabase.*", "celery.*", "celery.result"]
 ignore_missing_imports = true
 
 # Pour les tests, on peut être moins strict
