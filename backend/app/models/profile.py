@@ -12,12 +12,7 @@ supabase: Client = create_client(
 
 
 class Profile(RLSModel):
-    class Config:
-        table = True
-        table_name = "profiles"
-        schema = "public"
-
-    __rls_enabled__ = True
+    __tablename__ = "profile"
     email: str = Field(max_length=255)
     name: str | None = Field(default=None)
     picture_path: str | None = None  # Chemin dans le bucket
