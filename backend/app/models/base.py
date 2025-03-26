@@ -5,8 +5,6 @@ from typing import ClassVar
 
 from sqlmodel import UUID, Field, Relationship, SQLModel, text
 
-from app.models.user import User  # Ajouter l'import
-
 
 @dataclass
 class PolicyDefinition:
@@ -14,14 +12,12 @@ class PolicyDefinition:
     check: str | None = None  # Pour valider les nouvelles valeurs
 
 
-class RLSModel(SQLModel):
+class RLSModel(SQLModel, table=True):  # type: ignore
     """Classe de base avec politiques RLS par défaut"""
 
-    class Config:
-        table = True
-        schema = "public"
-        keep_existing = True
-        arbitrary_types_allowed = True
+    # Configuration SQLAlchemy via variables de classe
+    __tablename__: str | None = None  # Sera défini par les sous-classes
+    __table_args__ = {"schema": "public", "keep_existing": True}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(
@@ -31,8 +27,15 @@ class RLSModel(SQLModel):
         foreign_key="auth.users.id",
         ondelete="CASCADE",
     )
-    owner: User = Relationship(
-        sa_relationship_kwargs={"lazy": "joined", "uselist": False}
+
+    # Modifié : définir la relation comme un attribut supplémentaire (sans annotation de type)
+    # L'annotation de type causes le problème quand SQLModel essaie de la mapper
+    owner = Relationship(
+        sa_relationship_kwargs={
+            "primaryjoin": "RLSModel.owner_id == User.id",
+            "lazy": "joined",
+            "uselist": False,
+        }
     )
 
     # Flag pour activer/désactiver RLS
