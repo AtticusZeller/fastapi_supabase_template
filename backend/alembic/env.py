@@ -57,12 +57,28 @@ def get_url():
 
 def include_object(object, name, type_, reflected, compare_to):
     """Décide si un objet doit être inclus dans la génération de migration."""
-    # Ignorer le modèle User et les tables auth.*
+    # Schémas système Supabase à ignorer
+    IGNORED_SCHEMAS = {
+        "auth",
+        "storage",
+        "realtime",
+        "vault",
+        "extensions",
+        "pgbouncer"
+    }
+
     if type_ == "table":
-        if object.schema == "auth":
+        # Ignorer les tables des schémas système
+        if object.schema in IGNORED_SCHEMAS:
             return False
-        if name == "user" or name == User.__tablename__:
+        # Ignorer les tables spécifiques
+        if name == User.__tablename__:
             return False
+    elif type_ == "index":
+        # Ignorer les index des schémas système
+        if object.table.schema in IGNORED_SCHEMAS:
+            return False
+
     return True
 
 
