@@ -8,7 +8,7 @@ class User(SQLModel):
     """NOTE: do not migrate with alembic with it"""
 
     class Config:
-        table = True
+        table = False
         table_name = "users"
         schema = "auth"
         keep_existing = True
