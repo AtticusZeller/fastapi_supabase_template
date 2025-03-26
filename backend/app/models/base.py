@@ -17,6 +17,11 @@ class PolicyDefinition:
 class RLSModel(SQLModel):
     """Classe de base avec politiques RLS par défaut"""
 
+    class Config:
+        table = True
+        schema = "public"
+        keep_existing = True
+
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(
         UUID(as_uuid=True),
