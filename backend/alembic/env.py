@@ -6,7 +6,7 @@ from alembic import context
 from alembic.operations import ops
 # Import models and buckets
 from app.models import (STORAGE_BUCKETS, Base, Item, Profile,
-                        ProfilePicturesBucket, User)
+                        ProfilePicturesBucket)
 from app.models.base import RLSModel
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool, text
@@ -105,6 +105,7 @@ def run_migrations_offline() -> None:
         compare_type=True,
         as_sql=True,
         include_object=include_object,
+        include_schemas=True,
         process_revision_directives=process_revision_directives
     )
 
