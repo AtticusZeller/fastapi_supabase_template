@@ -5,6 +5,8 @@ from typing import ClassVar
 
 from sqlmodel import UUID, Field, Relationship, SQLModel, text
 
+from app.models.user import User
+
 
 @dataclass
 class PolicyDefinition:
@@ -29,7 +31,7 @@ class RLSModel(SQLModel, table=True):  # type: ignore
 
     # Modifié : définir la relation comme un attribut supplémentaire (sans annotation de type)
     # L'annotation de type causes le problème quand SQLModel essaie de la mapper
-    owner = Relationship(
+    owner: "User" = Relationship(
         sa_relationship_kwargs={
             "primaryjoin": "RLSModel.owner_id == User.id",
             "lazy": "joined",
