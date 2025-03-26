@@ -1,13 +1,13 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from app.core.config import settings
+from alembic.env import get_url
 from app.models import STORAGE_BUCKETS
 
 
 def init_storage():
     """Initialise les buckets et policies storage"""
-    engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+    engine = create_engine(get_url())
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     with SessionLocal() as session:
