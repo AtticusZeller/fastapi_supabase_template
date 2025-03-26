@@ -67,144 +67,31 @@ def include_object(object, name, type_, reflected, compare_to):
         "pgbouncer"
     }
 
+    # Ignorer complètement les objets storage
+    if hasattr(object, 'schema') and object.schema == "storage":
+        return False
+
+    # Ignorer les tables des schémas système
     if type_ == "table":
-        # Ignorer les tables des schémas système
         if object.schema in IGNORED_SCHEMAS:
-            return False
-        # Ignorer les tables spécifiques
-        if name == User.__tablename__:
-            return False
-    elif type_ == "index":
-        # Ignorer les index des schémas système
-        if object.table.schema in IGNORED_SCHEMAS:
             return False
 
     return True
 
 
 def process_revision_directives(context, revision, directives):
-    """Ajoute les directives RLS directement dans les opérations"""
-    logger.debug("Processing revision directives...")
+    """Personnalise la génération des migrations."""
+    if config.cmd_opts and config.cmd_opts.autogenerate:
+        script = directives[0]
 
-    if not directives or not directives[0].upgrade_ops:
-        logger.debug("No upgrade ops found!")
-        return
-
-    script = directives[0]
-
-    if not script.upgrade_ops:
-        script.upgrade_ops = ops.UpgradeOps([])
-    if not script.downgrade_ops:
-        script.downgrade_ops = ops.DowngradeOps([])
-
-    # 1. Traitement des tables à créer
-    created_tables = []
-    for op in script.upgrade_ops.ops:
-        if hasattr(op, 'table_name'):
-            table_name = op.table_name
-            if table_name != 'alembic_version':
-                created_tables.append(table_name)
-                logger.debug(f"Found table to process: {table_name}")
-
-    # Pour chaque table, ajouter les opérations RLS
-    for table_name in created_tables:
-        # Trouver le modèle correspondent
-        model = None
-        for m in [Item, Profile]:  # Ajoutez tous vos modèles ici
-            if (hasattr(m, '__tablename__') and
-                getattr(m, '__tablename__', None) == table_name and
-                issubclass(m, RLSModel) and
-                getattr(m, '__rls_enabled__', False)):
-                model = m
-                break
-
-        if model:
-            logger.debug(f"Adding RLS for {table_name} from model {model.__name__}")
-
-            # Enable RLS
-            script.upgrade_ops.ops.append(
-                ops.ExecuteSQLOp(f"ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY;")
-            )
-
-            # Add policies
-            for operation, policy in model.get_policies().items():
-                sql = f"""
-                    CREATE POLICY "{table_name}_{operation}" ON {table_name}
-                    FOR {operation.upper()}
-                """
-                if policy.using:
-                    sql += f"\n    USING ({policy.using})"
-                if policy.check:
-                    sql += f"\n    WITH CHECK ({policy.check})"
-                sql += ";"
-
-                script.upgrade_ops.ops.append(ops.ExecuteSQLOp(sql))
-                logger.debug(f"Added {operation} policy for {table_name}")
-
-            # Add downgrade operations at the beginning
-            # Drop policies first
-            for operation in model.get_policies().keys():
-                script.downgrade_ops.ops.insert(0,
-                    ops.ExecuteSQLOp(
-                        f'DROP POLICY IF EXISTS "{table_name}_{operation}" ON {table_name};'
-                    )
-                )
-
-            # Then disable RLS
-            script.downgrade_ops.ops.insert(0,
-                ops.ExecuteSQLOp(f"ALTER TABLE {table_name} DISABLE ROW LEVEL SECURITY;")
-            )
-
-    # 2. Traitement des buckets Storage
-    for bucket_class in STORAGE_BUCKETS:  # Utilisez votre liste de buckets
-        logger.debug(f"Processing storage bucket: {bucket_class.name}")
-
-        # Create bucket
-        script.upgrade_ops.ops.append(
-            ops.ExecuteSQLOp(f"""
-                INSERT INTO storage.buckets (id, name, public)
-                VALUES (
-                    '{bucket_class.name}',
-                    '{bucket_class.name}',
-                    {str(bucket_class.public).lower()}
-                )
-                ON CONFLICT (id) DO UPDATE
-                SET public = EXCLUDED.public;
-            """)
-        )
-
-        # Enable RLS on storage.objects
-        script.upgrade_ops.ops.append(
-            ops.ExecuteSQLOp(
-                "ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;"
-            )
-        )
-
-        # Add bucket policies
-        for policy in bucket_class.get_policies():
-            sql = f"""
-                CREATE POLICY "{policy.name}"
-                ON storage.objects
-                FOR {policy.operation.value}
-                {f"USING ({policy.using})" if policy.using else ""}
-                {f"WITH CHECK ({policy.check})" if policy.check else ""};
-            """
-            script.upgrade_ops.ops.append(ops.ExecuteSQLOp(sql))
-            logger.debug(f"Added {policy.operation.value} policy for bucket {bucket_class.name}")
-
-        # Add downgrade operations
-        for policy in bucket_class.get_policies():
-            script.downgrade_ops.ops.insert(0,
-                ops.ExecuteSQLOp(
-                    f'DROP POLICY IF EXISTS "{policy.name}" ON storage.objects;'
-                )
-            )
-
-        script.downgrade_ops.ops.append(
-            ops.ExecuteSQLOp(
-                f"DELETE FROM storage.buckets WHERE id = '{bucket_class.name}';"
-            )
-        )
+        # Filtrer les opérations storage
+        if script.upgrade_ops:
+            ops = []
+            for op in script.upgrade_ops.ops:
+                # Ignorer les opérations sur le schéma storage
+                if not hasattr(op, 'schema') or op.schema != 'storage':
+                    ops.append(op)
+            script.upgrade_ops.ops = ops
 
 
 def run_migrations_offline() -> None:

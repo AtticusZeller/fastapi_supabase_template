@@ -63,30 +63,15 @@ def run_migration(
             )
 
             if auto_apply:
-                # Vérifier si des migrations ont été générées
-                versions_dir = Path("alembic/versions")
-                if not versions_dir.exists():
-                    print("❌ Dossier versions non trouvé")
-                    return False
-
-                migration_files = list(versions_dir.glob("*.py"))
-                if not migration_files:
-                    print("ℹ️ Aucune migration générée")
-                    return True
-
-                latest_migration = sorted(migration_files)[-1]
-
-                # Vérifier le contenu de la migration
-                content = latest_migration.read_text()
-                if "def downgrade" not in content:
-                    print("⚠️ Migration n'a pas de fonction downgrade !")
-                    latest_migration.unlink()
-                    return False
-
-                # Test upgrade/downgrade cycle
+                # D'abord appliquer les migrations
                 subprocess.run(["alembic", "upgrade", "head"], check=True)
-                subprocess.run(["alembic", "downgrade", "-1"], check=True)
-                subprocess.run(["alembic", "upgrade", "head"], check=True)
+
+                # Ensuite initialiser le storage
+                from scripts.init_storage import init_storage
+
+                if not init_storage():
+                    print("⚠️ Erreur lors de l'initialisation du storage")
+                    return False
 
         elif command == "downgrade":
             if environment in ["production", "staging"] and not os.getenv(
