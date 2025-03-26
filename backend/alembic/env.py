@@ -6,7 +6,7 @@ from alembic import context
 from alembic.operations import ops
 # Import models and buckets
 from app.models import (STORAGE_BUCKETS, Base, Item, Profile,
-                        ProfilePicturesBucket)
+                        ProfilePicturesBucket, User)
 from app.models.base import RLSModel
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool, text
@@ -56,9 +56,13 @@ def get_url():
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    """Ne pas générer de migrations pour les tables du schéma auth"""
-    if type_ == "table" and object.schema == "auth":
-        return False
+    """Décide si un objet doit être inclus dans la génération de migration."""
+    # Ignorer le modèle User et les tables auth.*
+    if type_ == "table":
+        if object.schema == "auth":
+            return False
+        if name == "user" or name == User.__tablename__:
+            return False
     return True
 
 
@@ -222,7 +226,8 @@ def run_migrations_online() -> None:
             target_metadata=target_metadata,
             compare_type=True,
             include_object=include_object,
-            process_revision_directives=process_revision_directives
+            process_revision_directives=process_revision_directives,
+            include_schemas=True,
         )
 
         with context.begin_transaction():
