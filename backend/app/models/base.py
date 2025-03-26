@@ -21,6 +21,7 @@ class RLSModel(SQLModel):
         table = True
         schema = "public"
         keep_existing = True
+        arbitrary_types_allowed = True
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(
