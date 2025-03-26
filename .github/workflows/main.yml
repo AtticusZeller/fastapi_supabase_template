@@ -323,9 +323,15 @@ jobs:
           # Créer le dossier versions s'il n'existe pas
           mkdir -p backend/alembic/versions
 
+          # Générer et appliquer les migrations
           python backend/scripts/migrate.py staging revision \
             --message "Auto-migration from GitHub Actions" \
             --auto-apply
+
+          # Initialiser le storage séparément si nécessaire
+          if [ $? -eq 0 ]; then
+            python backend/scripts/init_storage.py
+          fi
 
   # SonarCloud analysis for code quality
   sonarcloud:
