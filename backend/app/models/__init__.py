@@ -4,13 +4,13 @@ from .file import FileMetadata
 from .item import Item
 from .profile import Profile, ProfilePicturesBucket
 from .storage import ItemDocuments, ProfilePictures
-from .user import User
+from .user import User  # Modèle pour la table auth.users, ne pas migrer
 
 # Pour Alembic
 Base = SQLModel
 
 __all__ = [
-    "User",
+    "User",  # Inclus pour les relations, mais pas pour les migrations
     "Item",
     "Base",
     "Profile",

@@ -1,17 +1,16 @@
+import logging
+import os
 from logging.config import fileConfig
 
 from alembic import context
+from alembic.operations import ops
+# Import models and buckets
+from app.models import (STORAGE_BUCKETS, Base, Item, Profile,
+                        ProfilePicturesBucket)
+from app.models.base import RLSModel
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool, text
 from sqlmodel import SQLModel
-import os
-import logging
-from dotenv import load_dotenv
-from alembic.operations import ops
-from app.models.base import RLSModel
-from app.models import Base, Item
-
-# Import models and buckets
-from app.models import Base, Profile, ProfilePicturesBucket, STORAGE_BUCKETS
 
 logger = logging.getLogger("alembic")
 
@@ -57,8 +56,8 @@ def get_url():
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    # Ignorer la table users du schéma auth
-    if type_ == "table" and name == "users" and object.schema == "auth":
+    """Ne pas générer de migrations pour les tables du schéma auth"""
+    if type_ == "table" and object.schema == "auth":
         return False
     return True
 

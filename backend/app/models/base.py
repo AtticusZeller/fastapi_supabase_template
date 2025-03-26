@@ -3,7 +3,9 @@ from dataclasses import dataclass
 from enum import Enum  # Pour lier avec nos modèles
 from typing import ClassVar
 
-from sqlmodel import UUID, Field, SQLModel, text
+from sqlmodel import UUID, Field, Relationship, SQLModel, text
+
+from app.models.user import User  # Ajouter l'import
 
 
 @dataclass
@@ -22,6 +24,9 @@ class RLSModel(SQLModel):
         nullable=False,
         foreign_key="auth.users.id",
         ondelete="CASCADE",
+    )
+    owner: User = Relationship(
+        sa_relationship_kwargs={"lazy": "joined", "uselist": False}
     )
 
     # Flag pour activer/désactiver RLS
