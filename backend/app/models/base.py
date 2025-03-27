@@ -1,7 +1,7 @@
 import uuid
 from dataclasses import dataclass
 from enum import Enum  # Pour lier avec nos modèles
-from typing import ClassVar
+from typing import ClassVar, Optional
 
 from sqlmodel import UUID, Field, Relationship, SQLModel, text
 
@@ -19,7 +19,6 @@ class RLSModel(SQLModel, table=True):  # type: ignore
 
     class Config:
         arbitrary_types_allowed = True
-        schema = "public"
         keep_existing = True
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -33,7 +32,7 @@ class RLSModel(SQLModel, table=True):  # type: ignore
 
     # Modifié : définir la relation comme un attribut supplémentaire (sans annotation de type)
     # L'annotation de type causes le problème quand SQLModel essaie de la mapper
-    owner: "User" = Relationship(
+    owner: Optional["User"] = Relationship(
         sa_relationship_kwargs={
             "primaryjoin": "RLSModel.owner_id == User.id",
             "lazy": "joined",
