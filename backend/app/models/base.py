@@ -1,10 +1,12 @@
 import uuid
 from dataclasses import dataclass
 from enum import Enum  # Pour lier avec nos modèles
-from typing import ClassVar, Literal
+from typing import ClassVar, Literal, Optional
 
 from pydantic import EmailStr
-from sqlmodel import UUID, Field, Relationship, SQLModel, text
+from sqlalchemy import select as sa_select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import UUID, Field, SQLModel, col, text
 
 
 class User(SQLModel):
@@ -42,8 +44,11 @@ class RLSModel(SQLModel, table=True):  # type: ignore
         ondelete="CASCADE",
     )
 
-    # Simplifier la définition de la relation owner
-    owner: User = Relationship()
+    async def owner(self, session: AsyncSession) -> Optional["User"]:
+        """Récupère dynamiquement l'utilisateur associé"""
+        statement = sa_select(User).where(col(User.id) == self.owner_id)
+        result = await session.execute(statement)
+        return result.scalar_one_or_none()
 
     # Flag pour activer/désactiver RLS
     __rls_enabled__: ClassVar[bool] = True
