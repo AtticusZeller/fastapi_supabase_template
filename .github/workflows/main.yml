@@ -292,9 +292,10 @@ jobs:
           PR_URL: ${{github.event.pull_request.html_url}}
           PR_TITLE: ${{github.event.pull_request.title}}
 
-  # Automatic migrations generation when models change
+  # Migration check on PRs
   database-migrations:
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    name: Check Database Migrations
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: [quality]
     steps:
@@ -314,24 +315,41 @@ jobs:
           cd backend
           pip install -e ".[test]"
 
-      - name: Generate and Apply Migrations
+      - name: Generate Migrations
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
-          POSTGRES_SERVER: ${{ secrets.POSTGRES_SERVER }}
-          ENVIRONMENT: staging
+          POSTGRES_SERVER: ${{ env.POSTGRES_SERVER }}
         run: |
-          # Créer le dossier versions s'il n'existe pas
           mkdir -p backend/alembic/versions
 
-          # Générer et appliquer les migrations
+          # Générer les migrations sans les appliquer
           python backend/scripts/migrate.py staging revision \
-            --message "Auto-migration from GitHub Actions" \
-            --auto-apply
+            --message "Migration check from PR #${{ github.event.pull_request.number }}"
 
-          # Initialiser le storage séparément si nécessaire
-          if [ $? -eq 0 ]; then
-            python backend/scripts/init_storage.py
+          # Vérifier si des migrations ont été générées
+          if [ -n "$(ls -A backend/alembic/versions/)" ]; then
+            echo "✨ Nouvelles migrations détectées"
+            echo "Les migrations suivantes seront appliquées lors du déploiement:"
+            ls -l backend/alembic/versions/
+          else
+            echo "✅ Aucune nouvelle migration nécessaire"
           fi
+
+  # Version management for tags
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   # SonarCloud analysis for code quality
   sonarcloud:
@@ -531,165 +549,6 @@ jobs:
               sleep 5
             fi
           done
-
-  build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
-    needs: [sonarcloud, database-migrations]
-    # Only build on main branch, develop branch or when it's a tag
-    if: success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/'))
-    permissions:
-      contents: read
-      packages: write
-    env:
-      IMAGE_TAG: ${{ github.ref == 'refs/heads/main' && 'staging' || github.ref == 'refs/heads/develop' && 'latest' || github.ref_name }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          labels: |
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.created=${{ github.event.repository.created_at }}
-
-  create-sentry-release:
-    runs-on: ubuntu-latest
-    needs: [build]
-    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/develop'
-    env:
-      ENVIRONMENT: ${{ startsWith(github.ref, 'refs/tags/') && 'production' || github.ref == 'refs/heads/develop' && 'staging' || 'development' }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Get full history to access commits for changelog
-
-      - name: Determine version
-        id: version
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-          elif [[ $GITHUB_REF == refs/heads/develop ]]; then
-            VERSION=$(git rev-parse --short HEAD)-staging
-          else
-            VERSION=$(git rev-parse --short HEAD)-dev
-          fi
-          echo "release_version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version determined: $VERSION"
-
-      - name: Create Sentry Release
-        uses: getsentry/action-release@v1
-        with:
-          auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          org: ${{ secrets.SENTRY_ORG }}
-          project: ${{ secrets.SENTRY_PROJECT }}
-          environment: ${{ env.ENVIRONMENT }}
-          version: ${{ steps.version.outputs.release_version }}
-          ignore_missing: true
-          ignore_empty: true
-
-  notify-render-deployment:
-    name: Notify Render Deployment
-    runs-on: ubuntu-latest
-    needs: [create-sentry-release]
-    if: github.ref == 'refs/heads/develop'
-    steps:
-      - name: Render Deployment Info
-        run: |
-          echo "## 🚀 Déploiement Staging" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Le déploiement vers l'environnement staging est géré automatiquement par Render.com" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "⏱️ Le déploiement devrait être terminé dans environ 5-10 minutes" >> $GITHUB_STEP_SUMMARY
-          echo "🔗 Vous pouvez suivre la progression sur le tableau de bord Render" >> $GITHUB_STEP_SUMMARY
-
-  # Deployment (only for version tags)
-  release:
-    name: Release and Changelog
-    needs: [create-sentry-release]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install git-cliff
-
-      - name: Generate a changelog
-        run: git-cliff -v --latest --strip header -o CHANGES.md
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: CHANGES.md
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-  # Deploy to production (only for tags)
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [release]
-    if: startsWith(github.ref, 'refs/tags/')
-    environment: production
-    steps:
-      - name: Get Release Tag
-        id: get_tag
-        run: echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-      - name: Deploy to Production Environment
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USERNAME }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
-          script: |
-            echo "Deploying to Production environment..."
-            # Login to Docker registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-
-            # Pull version tagged image
-            docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.get_tag.outputs.RELEASE_TAG }}
-
-            # Deploy with docker-compose
-            cd ${{ secrets.PRODUCTION_APP_PATH }}
-            echo "IMAGE_TAG=${{ steps.get_tag.outputs.RELEASE_TAG }}" > .env
-            docker-compose pull
-            docker-compose up -d
-
-            # Check if application is working
-            echo "Waiting for application to start..."
-            sleep 10
-            if curl -s --fail http://localhost:8000/api/v1/health; then
-              echo "✅ Application deployed successfully!"
-            else
-              echo "❌ Deployment failed - application not responding."
-              exit 1
-            fi
 
   # Ajouter un nouveau job qui consolide les rapports existants
   quality-summary:
