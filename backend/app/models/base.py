@@ -31,15 +31,20 @@ class RLSModel(SQLModel, table=True):  # type: ignore
         ondelete="CASCADE",
     )
 
-    # Définir l'annotation de owner en dehors du bloc TYPE_CHECKING
-    owner: "User" = Field(default=None)
-    if not TYPE_CHECKING:
-        owner = Relationship(
-            sa_relationship_kwargs={
-                "primaryjoin": "RLSModel.owner_id == User.id",
-                "lazy": "joined",
-                "uselist": False,
-            }
+    # Simplifier la définition de la relation owner
+    if TYPE_CHECKING:
+        owner: "User"
+    else:
+        owner: "User" = Field(
+            default=None,
+            sa_relationship=lambda: Relationship(
+                back_populates=None,
+                sa_relationship_kwargs={
+                    "primaryjoin": "RLSModel.owner_id == User.id",
+                    "lazy": "joined",
+                    "uselist": False,
+                },
+            ),
         )
 
     # Flag pour activer/désactiver RLS
