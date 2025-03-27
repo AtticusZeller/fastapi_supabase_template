@@ -1,32 +1,34 @@
 # Ref: https://github.com/fastapi/full-stack-fastapi-template/blob/master/backend/Dockerfile
-FROM mcr.microsoft.com/devcontainers/python:1-3.11-bullseye
+# Étape de base commune
+FROM mcr.microsoft.com/devcontainers/python:1-3.11-bullseye as base
 
 # Set shell options
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Print logs immediately
-# Ref: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONUNBUFFERED
-ENV PYTHONUNBUFFERED=1
-
-# Arguments for user creation - avec des valeurs par défaut nulles
-ARG USERNAME=""
+# Build arguments avec des valeurs par défaut
+ARG BUILD_ENV=prod
+ARG USERNAME=appuser
 ARG USER_UID=1000
 ARG USER_GID=1000
-ARG BUILD_ENV="prod"
 
-# Prevent interactive prompts during build
-ENV DEBIAN_FRONTEND=noninteractive
+# Variables d'environnement communes
+ENV PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    UV_SYSTEM_PYTHON=/usr/local/bin/python \
+    UV_CACHE_DIR=/app/backend/.cache/uv \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1
 
 # Install system dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-    libpq-dev \
-    gcc \
-    sudo \
-    git \
-    curl \
-    ca-certificates \
-    gpg \
+        libpq-dev \
+        gcc \
+        sudo \
+        git \
+        curl \
+        ca-certificates \
+        gpg \
     && rm -rf /var/lib/apt/lists/*
 
 # Install GitHub CLI
@@ -48,49 +50,25 @@ WORKDIR /app
 # Install UV
 COPY --from=ghcr.io/astral-sh/uv:0.6.4 /uv /uvx /bin/
 
-# Configure UV for system-wide installation in container
-ENV UV_SYSTEM_PYTHON=/usr/local/bin/python
-ENV UV_CACHE_DIR=/app/backend/.cache/uv
-ENV UV_LINK_MODE=copy
-ENV UV_COMPILE_BYTECODE=1
-
-# Create cache directory
-RUN mkdir -p $UV_CACHE_DIR && \
-    chmod -R 777 $UV_CACHE_DIR
-
 # Copy backend files for dependency installation
 COPY . .
-RUN echo "=== Backend contents ===" && \
-    ls -la backend && \
-    echo "=== uv.lock contents ===" && \
-    cat backend/uv.lock && \
-    echo "=== Python path ===" && \
-    python -c "import sys; print('\n'.join(sys.path))"
 
-# Install dependencies
+# Installation des dépendances de base
 WORKDIR /app/backend
 RUN --mount=type=cache,target=$UV_CACHE_DIR \
-    set -x && \
-    # D'abord installer les dépendances
     uv sync --frozen && \
-    # Puis installer le projet en mode éditable
-    uv pip install --system -e . && \
-    echo "=== Installed packages ===" && \
-    python -m pip list && \
-    echo "=== Site packages location ===" && \
-    python -c "import site; print(site.getsitepackages())" && \
-    echo "=== Site packages contents ===" && \
-    ls -la /usr/local/lib/python3.11/site-packages/
+    uv pip install --system -e .
 
-RUN if [ "$BUILD_ENV" = "test" ] || [ "$BUILD_ENV" = "dev" ]; then \
-    uv pip install --system -e ".[test]" \
-    ; \
-    fi
+# Stage de développement
+FROM base as development
+ARG USERNAME
+ARG USER_UID
+ARG USER_GID
 
-# Verify installations with more debug
-RUN set -x && \
-    python -c "import sqlmodel; print(f'SQLModel version: {sqlmodel.__version__}')" && \
-    python -c "import alembic; print('Alembic installed successfully')"
+# Installation des outils de développement
+RUN --mount=type=cache,target=$UV_CACHE_DIR \
+    uv pip install --system -e ".[test]" && \
+    uv pip install --system debugpy ipython
 
 # Install Supabase CLI using curl instead of wget
 RUN curl -fsSL -o supabase.deb --progress-bar \
@@ -98,20 +76,60 @@ RUN curl -fsSL -o supabase.deb --progress-bar \
     && dpkg -i supabase.deb \
     && rm supabase.deb
 
-# Set ownership if in dev mode
-RUN if [ -n "$USERNAME" ] && [ "$BUILD_ENV" = "dev" ]; then \
-    chown -R $USERNAME:$USERNAME /app; \
+    # Configuration de l'environnement de développement
+ENV ENVIRONMENT=development \
+APP_MODE=api \
+PYTHONDONTWRITEBYTECODE=1 \
+PYTHONBREAKPOINT=ipdb.set_trace
+
+# Création de l'utilisateur de développement
+RUN if [ -n "$USERNAME" ]; then \
+        groupadd --gid $USER_GID $USERNAME && \
+        useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
+        echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME && \
+        chmod 0440 /etc/sudoers.d/$USERNAME; \
     fi
 
-# Si BUILD_ENV est dev, configurer GPG
-RUN if [ "$BUILD_ENV" = "dev" ]; then \
-    mkdir -p /home/$USERNAME/.gnupg && \
-    chown -R $USERNAME:$USERNAME /home/$USERNAME/.gnupg && \
-    chmod 700 /home/$USERNAME/.gnupg; \
+# Configuration Git et GPG pour le développement
+RUN if [ -n "$USERNAME" ]; then \
+        mkdir -p /home/$USERNAME/.gnupg && \
+        chown -R $USERNAME:$USERNAME /home/$USERNAME/.gnupg && \
+        chmod 700 /home/$USERNAME/.gnupg; \
     fi
 
-# Switch to non-root user if specified
-USER ${USERNAME:-root}
+USER ${USERNAME}
+
+# Stage de staging
+FROM base as staging
+
+# Configuration de l'environnement staging
+ENV ENVIRONMENT=staging \
+    APP_MODE=api \
+    PORT=10000 \
+    HOST=0.0.0.0 \
+    AUTORUN_MIGRATIONS=true
+
+# Création de l'utilisateur système pour staging
+RUN addgroup --system --gid 1001 appuser && \
+    adduser --system --uid 1001 --gid 1001 appuser && \
+    mkdir -p /app/backend/alembic/versions && \
+    chown -R appuser:appuser /app
+
+# Configuration des permissions
+RUN mkdir -p /app/backend/logs && \
+    chmod -R 755 /app/backend && \
+    chown -R appuser:appuser /app/backend/logs
+
+USER appuser
+
+# Stage final (sélectionné selon BUILD_ENV)
+# hadolint ignore=DL3006
+FROM ${BUILD_ENV} as final
+
+# Copie et configuration de l'entrypoint
+COPY --chown=appuser:appuser scripts/entrypoint.sh /app/scripts/
+RUN chmod +x /app/scripts/entrypoint.sh
+
 WORKDIR /app
 
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]

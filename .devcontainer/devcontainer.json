@@ -10,14 +10,17 @@
       "USERNAME": "vscode",
       "USER_UID": "1000",
       "USER_GID": "1000",
-      "BUILD_ENV": "dev"
+      "BUILD_ENV": "development"
     }
   },
   "containerEnv": {
     "PYTHONPATH": "/app",
     "UV_CACHE_DIR": "/app/.cache/uv",
     "UV_SYSTEM_PYTHON": "/usr/local/bin/python",
-    "UV_LINK_MODE": "copy"
+    "UV_LINK_MODE": "copy",
+    "ENVIRONMENT": "development",
+    "APP_MODE": "api",
+    "AUTORUN_MIGRATIONS": "true"
   },
   "customizations": {
     "vscode": {

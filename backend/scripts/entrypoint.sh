@@ -3,77 +3,94 @@
 
 set -e
 
+log_message() {
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
+}
+
 echo "Starting application in $APP_MODE mode (Environment: $ENVIRONMENT)"
 
 # Fonction pour appliquer les migrations
 apply_migrations() {
-  echo "Checking database connection..."
-  cd backend
-  python -m app.database.pre_start
+    log_message "Checking database connection..."
+    cd backend
+    python -m app.database.pre_start
 
-  echo "Checking for pending migrations..."
-  PENDING_MIGRATIONS=$(alembic show head 2>/dev/null | grep -i "Pending migrations" || echo "")
+    echo "Checking for pending migrations..."
+    PENDING_MIGRATIONS=$(alembic show head 2>/dev/null | grep -i "Pending migrations" || echo "")
 
-  if [ -n "$PENDING_MIGRATIONS" ]; then
-    echo "Pending migrations detected"
+    if [ -n "$PENDING_MIGRATIONS" ]; then
+        log_message "Pending migrations detected"
 
-    # En production, générer d'abord un fichier SQL pour revue
-    if [ "$ENVIRONMENT" = "production" ]; then
-      echo "Production environment detected. Generating SQL migration script."
-      alembic upgrade head --sql > /tmp/migration_sql.txt
-      echo "SQL migration script generated at /tmp/migration_sql.txt"
+        case "$ENVIRONMENT" in
+            "development")
+                log_message "Development environment: applying migrations..."
+                alembic upgrade head
+                ;;
+            "staging")
+                log_message "Staging environment: applying migrations with backup..."
+                if [ -n "$DB_BACKUP_CMD" ]; then
+                    eval "$DB_BACKUP_CMD"
+                fi
+                alembic upgrade head
+                ;;
+            "production")
+                log_message "Production environment detected. Generating SQL migration script."
+                alembic upgrade head --sql > /tmp/migration_sql.txt
+                log_message "SQL migration script generated at /tmp/migration_sql.txt"
 
-      # Appliquer uniquement si explicitement demandé en production
-      if [ "${AUTORUN_MIGRATIONS}" = "true" ]; then
-        echo "AUTORUN_MIGRATIONS is enabled. Applying migrations automatically..."
+                # Appliquer uniquement si explicitement demandé en production
+                if [ "${AUTORUN_MIGRATIONS}" = "true" ]; then
+                    log_message "AUTORUN_MIGRATIONS is enabled. Applying migrations automatically..."
 
-        # Créer une sauvegarde de la base avant la migration
-        if [ -n "$DB_BACKUP_CMD" ]; then
-          echo "Creating database backup before migration..."
-          eval "$DB_BACKUP_CMD"
-        fi
+                    # Créer une sauvegarde de la base avant la migration
+                    if [ -n "$DB_BACKUP_CMD" ]; then
+                        log_message "Creating database backup before migration..."
+                        eval "$DB_BACKUP_CMD"
+                    fi
 
-        # Signaler aux services de se mettre en pause (si configuré)
-        if [ -n "$PAUSE_SERVICES_CMD" ]; then
-          echo "Pausing services before migration..."
-          eval "$PAUSE_SERVICES_CMD"
-        fi
+                    # Signaler aux services de se mettre en pause (si configuré)
+                    if [ -n "$PAUSE_SERVICES_CMD" ]; then
+                        log_message "Pausing services before migration..."
+                        eval "$PAUSE_SERVICES_CMD"
+                    fi
 
-        # Appliquer les migrations
-        alembic upgrade head
+                    # Appliquer les migrations
+                    alembic upgrade head
 
-        # Vérifier que pgmq est correctement initialisé après migration
+                    # Vérifier que pgmq est correctement initialisé après migration
+                    python -m app.utils.pgmq_init
+
+                    log_message "Migrations applied successfully."
+
+                    # Signaler aux services qu'ils peuvent reprendre (si configuré)
+                    if [ -n "$RESUME_SERVICES_CMD" ]; then
+                        log_message "Resuming services after migration..."
+                        eval "$RESUME_SERVICES_CMD"
+                    fi
+                else
+                    log_message "AUTORUN_MIGRATIONS is not enabled. Review the SQL and apply manually or set AUTORUN_MIGRATIONS=true."
+                fi
+                ;;
+        esac
+
+        # Initialisation pgmq commune
         python -m app.utils.pgmq_init
-
-        echo "Migrations applied successfully."
-
-        # Signaler aux services qu'ils peuvent reprendre (si configuré)
-        if [ -n "$RESUME_SERVICES_CMD" ]; then
-          echo "Resuming services after migration..."
-          eval "$RESUME_SERVICES_CMD"
-        fi
-      else
-        echo "AUTORUN_MIGRATIONS is not enabled. Review the SQL and apply manually or set AUTORUN_MIGRATIONS=true."
-      fi
+        log_message "Migrations completed for $ENVIRONMENT environment"
     else
-      # En développement ou staging, appliquer automatiquement
-      echo "Applying migrations automatically in non-production environment..."
-      alembic upgrade head
+        log_message "No pending migrations."
 
-      # Initialiser pgmq après migrations
-      python -m app.utils.pgmq_init
-
-      echo "Migrations applied successfully."
+        # Vérifier pgmq même sans migrations
+        python -m app.utils.pgmq_init
     fi
-  else
-    echo "No pending migrations."
 
-    # Vérifier pgmq même sans migrations
-    python -m app.utils.pgmq_init
-  fi
-
-  cd ..
+    cd ..
 }
+
+# Vérification des variables requises
+: "${ENVIRONMENT:?Environment must be set}"
+: "${APP_MODE:?App mode must be set}"
+: "${PORT:=8000}"
+: "${HOST:=0.0.0.0}"
 
 # Appliquer les migrations en mode API et en mode worker pour pgmq
 # Les workers doivent également attendre que les migrations soient appliquées
@@ -92,7 +109,7 @@ case "$APP_MODE" in
   "api")
     echo "Starting FastAPI server on port $PORT"
     cd backend
-    exec uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    exec uvicorn app.main:app --host $HOST --port $PORT
     ;;
 
   "worker")
