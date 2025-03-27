@@ -31,10 +31,9 @@ class RLSModel(SQLModel, table=True):  # type: ignore
         ondelete="CASCADE",
     )
 
-    # Relation avec type conditionnel
-    if TYPE_CHECKING:
-        owner: "User"
-    else:
+    # Définir l'annotation de owner en dehors du bloc TYPE_CHECKING
+    owner: "User" = Field(default=None)
+    if not TYPE_CHECKING:
         owner = Relationship(
             sa_relationship_kwargs={
                 "primaryjoin": "RLSModel.owner_id == User.id",
