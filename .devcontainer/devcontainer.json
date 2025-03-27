@@ -66,7 +66,6 @@
         "ms-python.python",
         "ms-python.black-formatter",
         "ms-python.flake8",
-        "github.vscode-github-actions",
         "matangover.mypy",
         "njpwerner.autodocstring",
         "ms-azuretools.vscode-docker",
