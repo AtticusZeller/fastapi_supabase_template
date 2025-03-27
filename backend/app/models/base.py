@@ -4,6 +4,7 @@ from enum import Enum  # Pour lier avec nos modèles
 from typing import ClassVar
 
 from sqlmodel import UUID, Field, Relationship, SQLModel, text
+from sqlmodel.engine.config import ConfigDict
 
 from app.models.user import User
 
@@ -17,12 +18,10 @@ class PolicyDefinition:
 class RLSModel(SQLModel, table=True):  # type: ignore
     """Classe de base avec politiques RLS par défaut"""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     # Configuration SQLAlchemy via variables de classe
-    __table_args__ = {
-        "schema": "public",
-        "keep_existing": True,
-        "arbitrary_types_allowed": True,
-    }
+    __table_args__ = {"schema": "public", "keep_existing": True}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(
