@@ -5,8 +5,6 @@ on:
   pull_request:
     branches: [ main, develop ]
     types: [opened, synchronize, reopened, labeled]
-    paths-ignore:
-      - '.github/workflows/**'
   workflow_dispatch:
 
 # Global environment variables
