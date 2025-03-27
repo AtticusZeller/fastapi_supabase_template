@@ -43,13 +43,7 @@ class RLSModel(SQLModel, table=True):  # type: ignore
     )
 
     # Simplifier la définition de la relation owner
-    owner: User = Relationship(
-        sa_relationship_kwargs={
-            "primaryjoin": "RLSModel.owner_id == User.id",
-            "lazy": "joined",
-            "uselist": False,
-        }
-    )
+    owner: User = Relationship()
 
     # Flag pour activer/désactiver RLS
     __rls_enabled__: ClassVar[bool] = True
