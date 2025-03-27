@@ -122,14 +122,27 @@ RUN mkdir -p /app/backend/logs && \
 
 USER appuser
 
-# Stage final (sélectionné selon BUILD_ENV)
-# hadolint ignore=DL3006
-FROM ${BUILD_ENV} as final
+# Stage final - Approche avec conditionnels plutôt que variables
+FROM development as final-development
+COPY --chown=${USERNAME}:${USERNAME} scripts/entrypoint.sh /app/scripts/
+RUN chmod +x /app/scripts/entrypoint.sh
+WORKDIR /app
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]
 
-# Copie et configuration de l'entrypoint
+FROM staging as final-staging
 COPY --chown=appuser:appuser scripts/entrypoint.sh /app/scripts/
 RUN chmod +x /app/scripts/entrypoint.sh
-
 WORKDIR /app
-
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+
+# Stage final par défaut (production)
+FROM base as final-prod
+USER appuser
+COPY --chown=appuser:appuser scripts/entrypoint.sh /app/scripts/
+RUN chmod +x /app/scripts/entrypoint.sh
+WORKDIR /app
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+
+# Stage final (sélection par défaut)
+# hadolint ignore=DL3006
+FROM final-${BUILD_ENV} as final
