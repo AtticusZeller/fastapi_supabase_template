@@ -1,13 +1,13 @@
 from sqlmodel import SQLModel
 
+# Import base models first
+from .base import User
+
 # Then models that depend on base
 from .file import FileMetadata
 from .item import Item
 from .profile import Profile, ProfilePicturesBucket
 from .storage import ItemDocuments, ProfilePictures
-
-# Import base models first
-from .user import User
 
 # Pour Alembic
 Base = SQLModel

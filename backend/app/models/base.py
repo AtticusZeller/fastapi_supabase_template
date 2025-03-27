@@ -1,12 +1,23 @@
 import uuid
 from dataclasses import dataclass
 from enum import Enum  # Pour lier avec nos modèles
-from typing import TYPE_CHECKING, ClassVar, Literal
+from typing import ClassVar, Literal
 
+from pydantic import EmailStr
 from sqlmodel import UUID, Field, Relationship, SQLModel, text
 
-if TYPE_CHECKING:
-    from .user import User  # Import conditionnel
+
+class User(SQLModel):
+    """NOTE: do not migrate with alembic with it"""
+
+    class Config:
+        table = True
+        table_name = "users"
+        schema = "auth"
+        keep_existing = True
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    email: EmailStr = Field(max_length=255)
 
 
 @dataclass
@@ -32,20 +43,13 @@ class RLSModel(SQLModel, table=True):  # type: ignore
     )
 
     # Simplifier la définition de la relation owner
-    if TYPE_CHECKING:
-        owner: "User"
-    else:
-        owner: "User" = Field(
-            default=None,
-            sa_relationship=lambda: Relationship(
-                back_populates=None,
-                sa_relationship_kwargs={
-                    "primaryjoin": "RLSModel.owner_id == User.id",
-                    "lazy": "joined",
-                    "uselist": False,
-                },
-            ),
-        )
+    owner: User = Relationship(
+        sa_relationship_kwargs={
+            "primaryjoin": "RLSModel.owner_id == User.id",
+            "lazy": "joined",
+            "uselist": False,
+        }
+    )
 
     # Flag pour activer/désactiver RLS
     __rls_enabled__: ClassVar[bool] = True
