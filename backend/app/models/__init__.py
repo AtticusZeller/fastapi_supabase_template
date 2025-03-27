@@ -1,16 +1,19 @@
 from sqlmodel import SQLModel
 
+# Then models that depend on base
 from .file import FileMetadata
 from .item import Item
 from .profile import Profile, ProfilePicturesBucket
 from .storage import ItemDocuments, ProfilePictures
-from .user import User  # Modèle pour la table auth.users, ne pas migrer
+
+# Import base models first
+from .user import User
 
 # Pour Alembic
 Base = SQLModel
 
 __all__ = [
-    "User",  # Inclus pour les relations, mais pas pour les migrations
+    "User",
     "Item",
     "Base",
     "Profile",
