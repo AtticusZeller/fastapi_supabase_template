@@ -4,9 +4,10 @@ from enum import Enum  # Pour lier avec nos modèles
 from typing import ClassVar, Literal, Optional
 
 from pydantic import EmailStr
-from sqlalchemy import select as sa_select
+from sqlalchemy import Column, select as sa_select
+from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import UUID, Field, SQLModel, col, text
+from sqlmodel import Field, SQLModel, col, text
 
 
 class User(SQLModel):
@@ -36,12 +37,14 @@ class RLSModel(SQLModel, table=True):  # type: ignore
         keep_existing: Literal[True]
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    # Définir la colonne owner_id sans foreign key SQLAlchemy
     owner_id: uuid.UUID = Field(
-        UUID(as_uuid=True),
-        sa_column_kwargs={"server_default": text("auth.uid()")},
-        nullable=False,
-        foreign_key="auth.users.id",
-        ondelete="CASCADE",
+        sa_column=Column(
+            PostgresUUID(as_uuid=True),
+            server_default=text("auth.uid()"),
+            nullable=False,
+        )
     )
 
     async def owner(self, session: AsyncSession) -> Optional["User"]:
