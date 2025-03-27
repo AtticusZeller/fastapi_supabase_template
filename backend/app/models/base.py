@@ -1,12 +1,26 @@
 import uuid
 from dataclasses import dataclass
 from enum import Enum  # Pour lier avec nos modèles
-from typing import TYPE_CHECKING, ClassVar, Literal
+from typing import ClassVar, Literal, Optional
 
-from sqlmodel import UUID, Field, Relationship, SQLModel, text
+from pydantic import EmailStr
+from sqlalchemy import Column, select as sa_select
+from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import Field, SQLModel, col, text
 
-if TYPE_CHECKING:
-    from .user import User  # Import conditionnel
+
+class User(SQLModel):
+    """NOTE: do not migrate with alembic with it"""
+
+    class Config:
+        table = True
+        table_name = "users"
+        schema = "auth"
+        keep_existing = True
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    email: EmailStr = Field(max_length=255)
 
 
 @dataclass
@@ -23,25 +37,21 @@ class RLSModel(SQLModel, table=True):  # type: ignore
         keep_existing: Literal[True]
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    # Définir la colonne owner_id sans foreign key SQLAlchemy
     owner_id: uuid.UUID = Field(
-        UUID(as_uuid=True),
-        sa_column_kwargs={"server_default": text("auth.uid()")},
-        nullable=False,
-        foreign_key="auth.users.id",
-        ondelete="CASCADE",
+        sa_column=Column(
+            PostgresUUID(as_uuid=True),
+            server_default=text("auth.uid()"),
+            nullable=False,
+        )
     )
 
-    # Relation avec type conditionnel
-    if TYPE_CHECKING:
-        owner: "User"
-    else:
-        owner = Relationship(
-            sa_relationship_kwargs={
-                "primaryjoin": "RLSModel.owner_id == User.id",
-                "lazy": "joined",
-                "uselist": False,
-            }
-        )
+    async def owner(self, session: AsyncSession) -> Optional["User"]:
+        """Récupère dynamiquement l'utilisateur associé"""
+        statement = sa_select(User).where(col(User.id) == self.owner_id)
+        result = await session.execute(statement)
+        return result.scalar_one_or_none()
 
     # Flag pour activer/désactiver RLS
     __rls_enabled__: ClassVar[bool] = True
