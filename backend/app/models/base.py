@@ -1,11 +1,12 @@
 import uuid
 from dataclasses import dataclass
 from enum import Enum  # Pour lier avec nos modèles
-from typing import ClassVar, Optional
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 from sqlmodel import UUID, Field, Relationship, SQLModel, text
 
-from app.models.user import User
+if TYPE_CHECKING:
+    from .user import User  # Import conditionnel
 
 
 @dataclass
@@ -18,8 +19,8 @@ class RLSModel(SQLModel, table=True):  # type: ignore
     """Classe de base avec politiques RLS par défaut"""
 
     class Config:
-        arbitrary_types_allowed = True
-        keep_existing = True
+        arbitrary_types_allowed: Literal[True]
+        keep_existing: Literal[True]
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(
@@ -30,15 +31,17 @@ class RLSModel(SQLModel, table=True):  # type: ignore
         ondelete="CASCADE",
     )
 
-    # Modifié : définir la relation comme un attribut supplémentaire (sans annotation de type)
-    # L'annotation de type causes le problème quand SQLModel essaie de la mapper
-    owner: Optional["User"] = Relationship(
-        sa_relationship_kwargs={
-            "primaryjoin": "RLSModel.owner_id == User.id",
-            "lazy": "joined",
-            "uselist": False,
-        }
-    )
+    # Relation avec type conditionnel
+    if TYPE_CHECKING:
+        owner: "User"
+    else:
+        owner = Relationship(
+            sa_relationship_kwargs={
+                "primaryjoin": "RLSModel.owner_id == User.id",
+                "lazy": "joined",
+                "uselist": False,
+            }
+        )
 
     # Flag pour activer/désactiver RLS
     __rls_enabled__: ClassVar[bool] = True

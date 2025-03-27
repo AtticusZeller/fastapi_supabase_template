@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlmodel import Field, SQLModel
 
-from app.models.base import RLSModel
+from .base import RLSModel
 
 
 class FileMetadataBase(SQLModel):
