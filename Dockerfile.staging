@@ -1,0 +1,5 @@
+# hadolint ignore=DL3006
+FROM ./Dockerfile as base
+
+# hadolint ignore=DL3006
+FROM final-staging as final
