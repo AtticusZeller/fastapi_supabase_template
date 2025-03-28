@@ -6,6 +6,7 @@ FROM mcr.microsoft.com/devcontainers/python:1-3.11-bullseye as base
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Build arguments avec des valeurs par défaut
+ARG BUILD_ENV=prod
 ARG USERNAME=appuser
 ARG USER_UID=1000
 ARG USER_GID=1000
@@ -144,4 +145,4 @@ ENTRYPOINT ["/app/scripts/entrypoint.sh"]
 
 # Stage final (sélection par défaut)
 # hadolint ignore=DL3006
-FROM final-${ENVIRONMENT} as final
+FROM final-${BUILD_ENV} as final
