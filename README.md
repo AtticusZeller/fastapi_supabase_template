@@ -1,4 +1,4 @@
-# FastAPI Supbase Template
+# FastAPI Supabase Template
 
 ## Environment
 
