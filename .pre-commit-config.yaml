@@ -4,7 +4,7 @@
 # `pre-commit run --all-files` run hooks for all file
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-toml
       - id: check-yaml
@@ -19,7 +19,7 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.3
     hooks:
       - id: codespell
         args: [--write-changes]
@@ -27,7 +27,7 @@ repos:
         files: \.(py|sh|json|yml|yaml|md)$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.8
+    rev: v0.16.6
 
     hooks:
       - id: ruff
@@ -35,7 +35,7 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.13.1-beta
+    rev: v2.15.1
     hooks:
       - id: hadolint
         name: Lint Dockerfiles
@@ -46,7 +46,7 @@ repos:
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
-    rev: 0.7.2
+    rev: 0.12.10
 
     hooks:
       # Update the uv lockfile
